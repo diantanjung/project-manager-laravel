@@ -58,6 +58,9 @@ class User extends Authenticatable
         ];
     }
 
+    /**
+     * @return HasMany<AuthToken, $this>
+     */
     public function authTokens(): HasMany
     {
         return $this->hasMany(AuthToken::class);
