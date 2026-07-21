@@ -1,0 +1,367 @@
+# Todo: Project Manager Laravel Portfolio
+
+Sumber: [doc/prd-laravel.md](doc/prd-laravel.md)
+
+## Milestone 1 - Foundation
+
+- [ ] Pastikan setup Laravel API backend berjalan dari fresh clone.
+- [ ] Konfigurasi environment dasar untuk local, test, staging, dan production.
+- [ ] Konfigurasi Supabase PostgreSQL via environment variable.
+- [ ] Tambahkan health check endpoint `GET /health`.
+- [ ] Siapkan base API prefix `/api/v1`.
+- [ ] Buat struktur layer utama: Actions, DTO, Enums, Services, Policies, Observers, Jobs, Requests, dan Resources sesuai kebutuhan.
+- [ ] Buat enum:
+  - [ ] `UserRole`: `admin`, `productOwner`, `projectManager`, `teamMember`.
+  - [ ] `TeamMemberRole`: `owner`, `admin`, `member`.
+  - [ ] `ProjectStatus`: `planning`, `active`, `paused`, `completed`, `archived`.
+  - [ ] `TaskStatus`: `backlog`, `todo`, `in_progress`, `review`, `done`.
+  - [ ] `TaskPriority`: `low`, `medium`, `high`, `urgent`.
+  - [ ] `NotificationType`: `task_assigned`, `mention`, `task_due`, `project_update`, `system_alert`.
+  - [ ] `WebhookEvent`: `task.created`, `task.updated`, `task.completed`, `comment.created`, `project.updated`.
+- [ ] Buat model dan migration dasar `User`.
+- [ ] Tambahkan field user: `name`, `email`, `password`, `avatar_path`, `role`, `timezone`, `last_login_at`.
+- [ ] Tambahkan unique index untuk `users.email`.
+- [ ] Buat role middleware atau gate dasar untuk hierarchy role.
+- [ ] Siapkan base response envelope untuk resource, paginated list, dan error JSON.
+- [ ] Pastikan API response menggunakan camelCase.
+- [ ] Siapkan base test setup dengan Pest.
+
+## Milestone 2 - Authentication dan User Management
+
+- [ ] Buat migration dan model `RefreshToken`.
+- [ ] Implement `TokenService` untuk access token, refresh token hash, expiry, rotation, dan revoke.
+- [ ] Implement endpoint auth:
+  - [ ] `POST /api/v1/auth/register`.
+  - [ ] `POST /api/v1/auth/login`.
+  - [ ] `POST /api/v1/auth/refresh`.
+  - [ ] `POST /api/v1/auth/logout`.
+  - [ ] `GET /api/v1/me`.
+- [ ] Register public membuat role default `teamMember`.
+- [ ] Login menghasilkan access token.
+- [ ] Refresh token disimpan sebagai cookie `HttpOnly`.
+- [ ] Refresh token di-hash di database.
+- [ ] Refresh token dirotasi saat refresh.
+- [ ] Logout mencabut refresh token aktif.
+- [ ] Tambahkan rate limit untuk login.
+- [ ] Implement admin user CRUD:
+  - [ ] `GET /api/v1/users`.
+  - [ ] `POST /api/v1/users`.
+  - [ ] `GET /api/v1/users/{user}`.
+  - [ ] `PATCH /api/v1/users/{user}`.
+  - [ ] `DELETE /api/v1/users/{user}`.
+- [ ] Implement update profil sendiri.
+- [ ] Implement `GET /api/v1/users/{user}/tasks`.
+- [ ] Implement upload avatar `POST /api/v1/users/{user}/avatar`.
+- [ ] Pastikan response user tidak memuat password, refresh token, atau secret.
+
+## Milestone 3 - Core Project Management
+
+- [ ] Buat model, migration, factory, dan seeder untuk `Team`.
+- [ ] Buat model, migration, factory, dan seeder untuk `TeamMember`.
+- [ ] Buat model, migration, factory, dan seeder untuk `Project`.
+- [ ] Buat model, migration, factory, dan seeder untuk `ProjectTeam`.
+- [ ] Buat model, migration, factory, dan seeder untuk `Task`.
+- [ ] Buat model, migration, factory, dan seeder untuk `TaskAssignment`.
+- [ ] Tambahkan foreign key constraints untuk semua relasi core.
+- [ ] Tambahkan unique constraints:
+  - [ ] Team membership.
+  - [ ] Project-team assignment.
+  - [ ] Task additional assignment.
+- [ ] Tambahkan index untuk filter umum:
+  - [ ] `projects.team_id`.
+  - [ ] `projects.owner_id`.
+  - [ ] `projects.status`.
+  - [ ] `tasks.project_id`.
+  - [ ] `tasks.assignee_id`.
+  - [ ] `tasks.status`.
+  - [ ] `tasks.priority`.
+  - [ ] `tasks.due_date`.
+- [ ] Implement policies untuk user, team, project, dan task.
+- [ ] Implement team endpoints:
+  - [ ] `GET /api/v1/teams`.
+  - [ ] `POST /api/v1/teams`.
+  - [ ] `GET /api/v1/teams/{team}`.
+  - [ ] `PATCH /api/v1/teams/{team}`.
+  - [ ] `DELETE /api/v1/teams/{team}`.
+  - [ ] `GET /api/v1/teams/{team}/members`.
+  - [ ] `POST /api/v1/teams/{team}/members`.
+  - [ ] `DELETE /api/v1/teams/{team}/members/{user}`.
+- [ ] Duplicate team membership menghasilkan `409 Conflict`.
+- [ ] Implement project endpoints:
+  - [ ] `GET /api/v1/projects`.
+  - [ ] `POST /api/v1/projects`.
+  - [ ] `GET /api/v1/projects/{project}`.
+  - [ ] `PATCH /api/v1/projects/{project}`.
+  - [ ] `DELETE /api/v1/projects/{project}`.
+  - [ ] `GET /api/v1/projects/{project}/tasks`.
+  - [ ] `GET /api/v1/projects/{project}/summary`.
+  - [ ] `POST /api/v1/projects/{project}/teams`.
+  - [ ] `DELETE /api/v1/projects/{project}/teams/{team}`.
+- [ ] Project list mendukung search, filter status/team/owner, sort, dan pagination.
+- [ ] Project detail menampilkan task count per status.
+- [ ] User di luar scope project tidak dapat membaca detail project.
+- [ ] Implement task endpoints:
+  - [ ] `GET /api/v1/tasks`.
+  - [ ] `POST /api/v1/tasks`.
+  - [ ] `GET /api/v1/tasks/{task}`.
+  - [ ] `PATCH /api/v1/tasks/{task}`.
+  - [ ] `DELETE /api/v1/tasks/{task}`.
+  - [ ] `PATCH /api/v1/tasks/{task}/status`.
+  - [ ] `POST /api/v1/tasks/{task}/assignments`.
+  - [ ] `DELETE /api/v1/tasks/{task}/assignments/{user}`.
+- [ ] Task list mendukung filter project/status/priority/assignee/due date/search.
+- [ ] Task detail menampilkan komentar, attachment, assignments, dan activity.
+- [ ] Gunakan eager loading untuk menghindari N+1 query.
+
+## Milestone 4 - Collaboration
+
+- [ ] Buat model, migration, factory, dan seeder untuk `Comment`.
+- [ ] Buat model, migration, factory, dan seeder untuk `Attachment`.
+- [ ] Buat model, migration, factory, dan seeder untuk `Notification`.
+- [ ] Buat model, migration, factory, dan seeder untuk `ActivityLog`.
+- [ ] Tambahkan index:
+  - [ ] `notifications.recipient_id`.
+  - [ ] `activity_logs.entity_type, entity_id`.
+- [ ] Implement comment endpoints:
+  - [ ] `GET /api/v1/tasks/{task}/comments`.
+  - [ ] `POST /api/v1/tasks/{task}/comments`.
+  - [ ] `PATCH /api/v1/comments/{comment}`.
+  - [ ] `DELETE /api/v1/comments/{comment}`.
+- [ ] User dengan akses task dapat membuat komentar.
+- [ ] Author dapat update/delete komentarnya sendiri.
+- [ ] Implement mention parser format `@name`.
+- [ ] Mention menghasilkan notification `mention`.
+- [ ] Comment create/update menghasilkan activity log.
+- [ ] Konfigurasi Cloudflare R2 sebagai disk S3-compatible.
+- [ ] Tambahkan environment variable R2:
+  - [ ] `FILESYSTEM_DISK=r2`.
+  - [ ] `R2_ACCESS_KEY_ID`.
+  - [ ] `R2_SECRET_ACCESS_KEY`.
+  - [ ] `R2_BUCKET`.
+  - [ ] `R2_ENDPOINT`.
+  - [ ] `R2_PUBLIC_URL`.
+  - [ ] `R2_USE_PATH_STYLE_ENDPOINT=true`.
+- [ ] Implement `StorageUrlService`.
+- [ ] Implement attachment endpoints:
+  - [ ] `GET /api/v1/tasks/{task}/attachments`.
+  - [ ] `POST /api/v1/tasks/{task}/attachments`.
+  - [ ] `GET /api/v1/attachments/{attachment}/download`.
+  - [ ] `DELETE /api/v1/attachments/{attachment}`.
+- [ ] Validasi attachment berdasarkan MIME type dan ukuran.
+- [ ] Supported file MVP: image, PDF, text, zip.
+- [ ] Simpan metadata attachment di database.
+- [ ] Download attachment hanya untuk user yang punya akses task.
+- [ ] Delete attachment menghapus metadata dan object storage.
+- [ ] Pastikan URL file tidak membocorkan credential.
+- [ ] Private file menggunakan signed/temporary URL atau endpoint proxy dengan permission check.
+- [ ] Implement notification endpoints:
+  - [ ] `GET /api/v1/notifications`.
+  - [ ] `PATCH /api/v1/notifications/{notification}/read`.
+  - [ ] `PATCH /api/v1/notifications/read-all`.
+- [ ] Buat notification untuk assignment, mention, overdue reminder, dan project update.
+- [ ] Implement activity endpoints:
+  - [ ] `GET /api/v1/projects/{project}/activity`.
+  - [ ] `GET /api/v1/tasks/{task}/activity`.
+  - [ ] `GET /api/v1/activity-logs`.
+- [ ] Activity log menyimpan actor, entity, action, before, after, IP, user agent, dan timestamp.
+- [ ] Scope activity log:
+  - [ ] Project Manager melihat activity di project scope.
+  - [ ] Admin melihat semua activity.
+
+## Milestone 5 - Advanced Portfolio Features
+
+- [ ] Implement atomic Kanban reorder endpoint `POST /api/v1/tasks/reorder`.
+- [ ] Pastikan reorder task memakai transaction.
+- [ ] Buat model dan migration task checklist item.
+- [ ] Implement checklist endpoints:
+  - [ ] `POST /api/v1/tasks/{task}/checklist-items`.
+  - [ ] `PATCH /api/v1/checklist-items/{item}`.
+  - [ ] `DELETE /api/v1/checklist-items/{item}`.
+- [ ] Checklist item memiliki title, checked state, dan position.
+- [ ] Buat model dan migration task dependency/blocker.
+- [ ] Implement dependency endpoints:
+  - [ ] `POST /api/v1/tasks/{task}/dependencies`.
+  - [ ] `DELETE /api/v1/tasks/{task}/dependencies/{dependency}`.
+- [ ] Task tidak boleh `done` jika dependency wajib belum selesai.
+- [ ] Project summary menampilkan jumlah blocked task.
+- [ ] Implement dashboard endpoint `GET /api/v1/dashboard`.
+- [ ] Dashboard menyediakan:
+  - [ ] Total active project.
+  - [ ] Task count per status.
+  - [ ] Overdue task count.
+  - [ ] Workload per member.
+  - [ ] Recently updated tasks.
+  - [ ] Blocked tasks.
+- [ ] Optimalkan query dashboard atau tambahkan cache jika diperlukan.
+- [ ] Implement export CSV:
+  - [ ] `POST /api/v1/exports/project-report`.
+  - [ ] `GET /api/v1/exports/{export}`.
+- [ ] Export task list dan project report.
+- [ ] Jalankan export via job jika data besar.
+- [ ] Tambahkan cleanup expired export.
+- [ ] Implement saved filters bila masuk scope P1.
+- [ ] Implement public share link untuk project report bila masuk scope P1.
+- [ ] Implement admin audit dashboard bila masuk scope P1.
+
+## Milestone 6 - Integration, Queue, dan Scheduler
+
+- [ ] Buat model dan migration `WebhookEndpoint`.
+- [ ] Buat model dan migration `WebhookDelivery`.
+- [ ] Implement webhook endpoint management:
+  - [ ] `GET /api/v1/webhook-endpoints`.
+  - [ ] `POST /api/v1/webhook-endpoints`.
+  - [ ] `PATCH /api/v1/webhook-endpoints/{webhookEndpoint}`.
+  - [ ] `DELETE /api/v1/webhook-endpoints/{webhookEndpoint}`.
+  - [ ] `GET /api/v1/webhook-deliveries`.
+- [ ] Implement `WebhookSigner`.
+- [ ] Payload webhook ditandatangani menggunakan HMAC secret.
+- [ ] Event webhook MVP:
+  - [ ] `task.created`.
+  - [ ] `task.updated`.
+  - [ ] `task.completed`.
+  - [ ] `comment.created`.
+  - [ ] `project.updated`.
+- [ ] Dispatch outbound webhook via queue job.
+- [ ] Webhook delivery memiliki retry dengan backoff.
+- [ ] Delivery log dapat dilihat admin.
+- [ ] Implement jobs:
+  - [ ] `SendNotificationJob`.
+  - [ ] `DispatchWebhookDeliveryJob`.
+  - [ ] `RetryFailedWebhookDeliveryJob`.
+  - [ ] `GenerateProjectReportExportJob`.
+  - [ ] `CleanupExpiredExportsJob`.
+  - [ ] `CleanupExpiredRefreshTokensJob`.
+  - [ ] `SendOverdueTaskReminderJob`.
+- [ ] Pastikan job idempotent jika memungkinkan.
+- [ ] Job menyimpan failure reason.
+- [ ] Job tidak menyimpan secret mentah di payload.
+- [ ] Failed jobs dapat di-retry.
+- [ ] Implement scheduled commands:
+  - [ ] `tasks:send-overdue-reminders` setiap hari.
+  - [ ] `notifications:send-digest` setiap hari kerja.
+  - [ ] `webhooks:retry-failed` setiap 15 menit.
+  - [ ] `exports:cleanup-expired` setiap hari.
+  - [ ] `sessions:cleanup-expired-refresh-tokens` setiap hari.
+- [ ] Daftarkan scheduler di `routes/console.php` atau bootstrap Laravel yang sesuai.
+- [ ] Siapkan queue worker untuk Render Background Worker.
+
+## Milestone 7 - Observers, Events, dan Audit
+
+- [ ] Bind service providers:
+  - [ ] `StorageUrlService`.
+  - [ ] `WebhookSigner`.
+  - [ ] `ActivityLogger`.
+  - [ ] `TokenService`.
+  - [ ] Queue routing bila queue dipisah.
+- [ ] Implement observers:
+  - [ ] `TaskObserver` untuk status, priority, due date, assignee.
+  - [ ] `ProjectObserver` untuk status dan owner changes.
+  - [ ] `CommentObserver` untuk activity log dan mention extraction.
+  - [ ] `AttachmentObserver` untuk cleanup storage saat delete.
+  - [ ] `TeamMemberObserver` untuk audit role/member changes.
+- [ ] Catat activity penting:
+  - [ ] Project create/update/archive.
+  - [ ] Task create/update/status change/reorder.
+  - [ ] Assignee change.
+  - [ ] Comment create/update/delete.
+  - [ ] Attachment upload/delete.
+  - [ ] Role/member change.
+- [ ] Tambahkan correlation/request ID untuk tracing manual.
+- [ ] Structured logs untuk request error, job failure, webhook delivery, dan auth failure.
+- [ ] Exception handler mengembalikan JSON konsisten.
+- [ ] Tambahkan rate limit untuk login, upload, webhook, dan export.
+
+## Milestone 8 - Demo Data dan Dokumentasi
+
+- [ ] Buat seeder demo:
+  - [ ] 1 admin.
+  - [ ] 1 product owner.
+  - [ ] 2 project managers.
+  - [ ] 6 team members.
+  - [ ] 3 teams.
+  - [ ] 4 projects.
+  - [ ] 30 tasks dengan variasi status dan priority.
+  - [ ] Comments.
+  - [ ] Mentions.
+  - [ ] Attachments dummy metadata.
+  - [ ] Notifications read/unread.
+  - [ ] Activity logs.
+- [ ] Tulis demo credentials di README hanya untuk local/staging demo.
+- [ ] Buat API docs untuk auth, user, team, project, task, comment, attachment, notification, dashboard, export, dan webhook.
+- [ ] Tambahkan Postman collection atau alternatif API collection.
+- [ ] Tulis README setup local.
+- [ ] Tulis README environment variables.
+- [ ] Tulis README test, seed, deploy, dan demo credentials.
+- [ ] Tambahkan architecture diagram.
+- [ ] Tambahkan screenshots atau short demo video.
+
+## Milestone 9 - Render Deployment
+
+- [ ] Siapkan deployment Render Web Service untuk Laravel API.
+- [ ] Siapkan Render Background Worker untuk `php artisan queue:work`.
+- [ ] Siapkan Render Cron Job untuk scheduled commands.
+- [ ] Tentukan runtime Docker atau runtime native Render.
+- [ ] Build command menjalankan `composer install --no-dev`.
+- [ ] Deploy/pre-deploy menjalankan:
+  - [ ] `php artisan config:cache`.
+  - [ ] `php artisan route:cache`.
+  - [ ] `php artisan migrate --force`.
+- [ ] Start command menjalankan web server PHP yang sesuai untuk Render.
+- [ ] Konfigurasi health check path `/health`.
+- [ ] Simpan env vars di Render dashboard atau Render Environment Group.
+- [ ] Pastikan Supabase dan R2 credential tidak disimpan di repo.
+- [ ] Pastikan production `APP_DEBUG=false`.
+- [ ] Dokumentasikan Render Environment Group:
+  - [ ] App: `APP_KEY`, `APP_ENV`, `APP_URL`, `FRONTEND_URL`.
+  - [ ] Database: `DB_CONNECTION`, `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`, `DATABASE_URL`.
+  - [ ] Storage: `FILESYSTEM_DISK`, `R2_*`.
+  - [ ] Queue: `QUEUE_CONNECTION`.
+  - [ ] Mail/log optional values.
+
+## Testing Checklist
+
+- [ ] Unit test role hierarchy.
+- [ ] Unit test policy decisions.
+- [ ] Unit test mention parser.
+- [ ] Unit test webhook signature generator/verifier.
+- [ ] Unit test token hashing/expiry.
+- [ ] Unit test task dependency validation.
+- [ ] Unit test storage path generator.
+- [ ] Feature test register/login/refresh/logout.
+- [ ] Feature test admin user CRUD.
+- [ ] Feature test team membership duplicate conflict.
+- [ ] Feature test project CRUD and visibility scope.
+- [ ] Feature test task CRUD and visibility scope.
+- [ ] Feature test task reorder transaction.
+- [ ] Feature test task dependency blocks completion.
+- [ ] Feature test comment mention creates notification.
+- [ ] Feature test attachment upload/delete using fake storage.
+- [ ] Feature test notification mark read.
+- [ ] Feature test activity log generated for important changes.
+- [ ] Feature test webhook delivery queued and signed.
+- [ ] Feature test dashboard summary returns expected counts.
+- [ ] Smoke test `/health` returns OK.
+- [ ] Smoke test migration runs on empty Supabase database.
+- [ ] Smoke test seeded demo user can login.
+- [ ] Smoke test R2 upload works in staging.
+- [ ] Smoke test queue worker processes notification job.
+- [ ] Smoke test cron job command can run manually.
+
+## Final Acceptance Checklist
+
+- [ ] API dapat dijalankan local dari fresh clone.
+- [ ] Database dapat dibuat via Laravel migrations.
+- [ ] Backend dapat terhubung ke Supabase PostgreSQL.
+- [ ] Attachment/avatar/export dapat tersimpan ke Cloudflare R2.
+- [ ] Render Web Service, Background Worker, dan Cron Job terdokumentasi.
+- [ ] Semua endpoint MVP tersedia.
+- [ ] RBAC dan resource-scoped access berjalan.
+- [ ] Queue jobs dan scheduler berjalan.
+- [ ] Test suite lulus.
+- [ ] README menjelaskan setup, env, test, seed, deploy, dan demo credentials.
+- [ ] API docs tersedia dan bisa dipakai frontend developer.
+- [ ] Recruiter/interviewer dapat memahami value project dari README dalam 5 menit.
+- [ ] Demo API dapat diakses dari Render staging URL.
+- [ ] Supabase database berisi demo seed.
+- [ ] Cloudflare R2 upload terbukti bekerja.
+- [ ] Project menunjukkan ownership end-to-end: product thinking, backend architecture, data model, security, performance, deployment, monitoring, dan testing.
