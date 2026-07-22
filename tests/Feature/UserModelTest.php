@@ -8,7 +8,7 @@ test('users default to an active team member role', function () {
 
     expect($user->role)->toBe(UserRole::TeamMember)
         ->and($user->is_active)->toBeTrue()
-        ->and($user->avatar_path)->toBeNull()
+        ->and($user->avatar_url)->toBeNull()
         ->and($user->last_login_at)->toBeNull();
 });
 

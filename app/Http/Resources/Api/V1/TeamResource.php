@@ -2,12 +2,12 @@
 
 namespace App\Http\Resources\Api\V1;
 
-use App\Models\User;
+use App\Models\Team;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/** @mixin User */
-class UserResource extends JsonResource
+/** @mixin Team */
+class TeamResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -19,14 +19,11 @@ class UserResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'email' => $this->email,
-            'role' => $this->role->value,
-            'avatarUrl' => $this->avatar_url,
-            'isActive' => $this->is_active,
-            'emailVerifiedAt' => $this->email_verified_at?->toIso8601String(),
-            'lastLoginAt' => $this->last_login_at?->toIso8601String(),
+            'description' => $this->description,
             'createdAt' => $this->created_at?->toIso8601String(),
             'updatedAt' => $this->updated_at?->toIso8601String(),
+            'members' => UserResource::collection($this->whenLoaded('members')),
+            'assignedProjects' => ProjectResource::collection($this->whenLoaded('assignedProjects')),
         ];
     }
 }

@@ -2,12 +2,12 @@
 
 namespace App\Http\Resources\Api\V1;
 
-use App\Models\User;
+use App\Models\Comment;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/** @mixin User */
-class UserResource extends JsonResource
+/** @mixin Comment */
+class CommentResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -18,15 +18,13 @@ class UserResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'name' => $this->name,
-            'email' => $this->email,
-            'role' => $this->role->value,
-            'avatarUrl' => $this->avatar_url,
-            'isActive' => $this->is_active,
-            'emailVerifiedAt' => $this->email_verified_at?->toIso8601String(),
-            'lastLoginAt' => $this->last_login_at?->toIso8601String(),
+            'content' => $this->content,
+            'taskId' => $this->task_id,
+            'authorId' => $this->author_id,
             'createdAt' => $this->created_at?->toIso8601String(),
             'updatedAt' => $this->updated_at?->toIso8601String(),
+            'task' => new TaskResource($this->whenLoaded('task')),
+            'author' => new UserResource($this->whenLoaded('author')),
         ];
     }
 }
