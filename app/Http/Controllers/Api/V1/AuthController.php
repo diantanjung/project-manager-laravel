@@ -14,19 +14,21 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use RuntimeException;
 
 class AuthController extends Controller
 {
     public function register(RegisterRequest $request, AuthTokenService $authTokens): JsonResponse
     {
         $user = User::query()->create($request->validated());
+        $tokens = $authTokens->issueTokenPair($user);
+        $userResource = new UserResource($user);
 
         return response()->json([
-            'data' => [
-                'user' => new UserResource($user),
-                'tokens' => $authTokens->issueTokenPair($user),
-            ],
-        ], 201);
+            'user' => $userResource,
+            'accessToken' => $tokens['accessToken'],
+            'refreshToken' => $tokens['refreshToken'],
+        ], 201)->cookie($this->refreshTokenCookie($tokens['refreshToken']));
     }
 
     public function login(LoginRequest $request, AuthTokenService $authTokens): JsonResponse
@@ -37,7 +39,7 @@ class AuthController extends Controller
             ->where('email', $validated['email'])
             ->first();
 
-        if ($user === null || ! Hash::check($validated['password'], $user->password)) {
+        if ($user === null || ! $this->passwordMatches($validated['password'], $user->password)) {
             throw ValidationException::withMessages([
                 'email' => __('auth.failed'),
             ]);
@@ -48,13 +50,14 @@ class AuthController extends Controller
         }
 
         $user->forceFill(['last_login_at' => now()])->save();
+        $tokens = $authTokens->issueTokenPair($user);
+        $userResource = new UserResource($user);
 
         return response()->json([
-            'data' => [
-                'user' => new UserResource($user),
-                'tokens' => $authTokens->issueTokenPair($user),
-            ],
-        ]);
+            'user' => $userResource,
+            'accessToken' => $tokens['accessToken'],
+            'refreshToken' => $tokens['refreshToken'],
+        ])->cookie($this->refreshTokenCookie($tokens['refreshToken']));
     }
 
     public function refresh(RefreshTokenRequest $request, AuthTokenService $authTokens): JsonResponse
@@ -67,10 +70,9 @@ class AuthController extends Controller
         }
 
         return response()->json([
-            'data' => [
-                'tokens' => $tokens,
-            ],
-        ]);
+            'accessToken' => $tokens['accessToken'],
+            'refreshToken' => $tokens['refreshToken'],
+        ])->cookie($this->refreshTokenCookie($tokens['refreshToken']));
     }
 
     public function me(Request $request): JsonResponse
@@ -94,6 +96,26 @@ class AuthController extends Controller
             'data' => [
                 'status' => 'loggedOut',
             ],
-        ]);
+        ])->withoutCookie('refreshToken');
+    }
+
+    private function refreshTokenCookie(string $refreshToken): \Symfony\Component\HttpFoundation\Cookie
+    {
+        return cookie(
+            name: 'refreshToken',
+            value: $refreshToken,
+            minutes: (int) config('auth_tokens.refresh_token_lifetime_minutes'),
+            httpOnly: true,
+            sameSite: 'lax',
+        );
+    }
+
+    private function passwordMatches(string $password, string $hashedPassword): bool
+    {
+        try {
+            return Hash::check($password, $hashedPassword);
+        } catch (RuntimeException) {
+            return false;
+        }
     }
 }
