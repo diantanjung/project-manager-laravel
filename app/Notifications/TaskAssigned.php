@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use App\Models\Task;
+use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -36,14 +37,13 @@ class TaskAssigned extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         $task = $this->task->loadMissing(['creator', 'project']);
-        $projectName = $task->project?->name ?? 'the project';
-        $creatorName = $task->creator?->name ?? 'Someone';
+        $notifiableName = $notifiable instanceof User ? $notifiable->name : 'there';
 
         return (new MailMessage)
             ->mailer('resend')
             ->subject("Task assigned: {$task->title}")
-            ->greeting("Hi {$notifiable->name},")
-            ->line("{$creatorName} assigned you a task in {$projectName}.")
+            ->greeting("Hi {$notifiableName},")
+            ->line("{$task->creator->name} assigned you a task in {$task->project->name}.")
             ->line("Task: {$task->title}")
             ->action('Open task', url("/tasks/{$task->id}"))
             ->line('Please review it when you have a moment.');
