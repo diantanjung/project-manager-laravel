@@ -50,6 +50,19 @@ class NotificationController extends Controller
         ]);
     }
 
+    /**
+     * @return array{
+     *     id: string,
+     *     userId: int|string,
+     *     actorId: int|string|null,
+     *     actorName: string|null,
+     *     actorAvatarUrl: string|null,
+     *     type: string,
+     *     taskId: int|string|null,
+     *     isRead: bool,
+     *     createdAt: string|null
+     * }
+     */
     private function notificationPayload(DatabaseNotification $notification): array
     {
         $data = $notification->data;

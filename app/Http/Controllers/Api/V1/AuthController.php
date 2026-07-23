@@ -15,6 +15,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use RuntimeException;
+use Symfony\Component\HttpFoundation\Cookie;
 
 class AuthController extends Controller
 {
@@ -99,7 +100,7 @@ class AuthController extends Controller
         ])->withoutCookie('refreshToken');
     }
 
-    private function refreshTokenCookie(string $refreshToken): \Symfony\Component\HttpFoundation\Cookie
+    private function refreshTokenCookie(string $refreshToken): Cookie
     {
         return cookie(
             name: 'refreshToken',
