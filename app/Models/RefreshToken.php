@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -15,6 +16,7 @@ use Illuminate\Support\Carbon;
  * @property bool|null $is_revoked
  * @property-read User $user
  */
+#[Hidden(['hash_token'])]
 class RefreshToken extends Model
 {
     public const UPDATED_AT = null;

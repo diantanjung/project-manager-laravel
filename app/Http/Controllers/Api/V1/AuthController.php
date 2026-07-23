@@ -26,9 +26,13 @@ class AuthController extends Controller
         $userResource = new UserResource($user);
 
         return response()->json([
-            'user' => $userResource,
-            'accessToken' => $tokens['accessToken'],
-            'refreshToken' => $tokens['refreshToken'],
+            'data' => [
+                'user' => $userResource,
+                'accessToken' => $tokens['accessToken'],
+                'refreshToken' => $tokens['refreshToken'],
+                'tokenType' => $tokens['tokenType'],
+                'expiresIn' => $tokens['expiresIn'],
+            ],
         ], 201)->cookie($this->refreshTokenCookie($tokens['refreshToken']));
     }
 
@@ -55,9 +59,13 @@ class AuthController extends Controller
         $userResource = new UserResource($user);
 
         return response()->json([
-            'user' => $userResource,
-            'accessToken' => $tokens['accessToken'],
-            'refreshToken' => $tokens['refreshToken'],
+            'data' => [
+                'user' => $userResource,
+                'accessToken' => $tokens['accessToken'],
+                'refreshToken' => $tokens['refreshToken'],
+                'tokenType' => $tokens['tokenType'],
+                'expiresIn' => $tokens['expiresIn'],
+            ],
         ])->cookie($this->refreshTokenCookie($tokens['refreshToken']));
     }
 
@@ -71,8 +79,12 @@ class AuthController extends Controller
         }
 
         return response()->json([
-            'accessToken' => $tokens['accessToken'],
-            'refreshToken' => $tokens['refreshToken'],
+            'data' => [
+                'accessToken' => $tokens['accessToken'],
+                'refreshToken' => $tokens['refreshToken'],
+                'tokenType' => $tokens['tokenType'],
+                'expiresIn' => $tokens['expiresIn'],
+            ],
         ])->cookie($this->refreshTokenCookie($tokens['refreshToken']));
     }
 
