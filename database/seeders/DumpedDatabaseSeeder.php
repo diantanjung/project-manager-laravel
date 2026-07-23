@@ -6,6 +6,7 @@ use App\Enums\TaskPriority;
 use App\Enums\TaskStatus;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class DumpedDatabaseSeeder extends Seeder
 {
@@ -27,12 +28,14 @@ class DumpedDatabaseSeeder extends Seeder
 
     private function seedUsers(): void
     {
+        $demoPassword = Hash::make('password');
+
         DB::table('users')->insert([
             0 => [
                 'id' => 27,
                 'name' => 'Admin User',
                 'email' => 'admin@example.com',
-                'password' => '$2b$10$mBLP2mvLBsoI52vGDQppbONhKm9bi4Huq4zHc4RJDF/RNbFrr2qtK',
+                'password' => $demoPassword,
                 'created_at' => '2026-02-20 04:56:53.745518',
                 'updated_at' => '2026-02-20 04:56:53.745518',
                 'avatar_url' => 'https://api.dicebear.com/7.x/avataaars/svg?seed=admin',
@@ -42,7 +45,7 @@ class DumpedDatabaseSeeder extends Seeder
                 'id' => 28,
                 'name' => 'John Product Owner',
                 'email' => 'john@example.com',
-                'password' => '$2b$10$mBLP2mvLBsoI52vGDQppbONhKm9bi4Huq4zHc4RJDF/RNbFrr2qtK',
+                'password' => $demoPassword,
                 'created_at' => '2026-02-20 04:56:53.745518',
                 'updated_at' => '2026-02-20 04:56:53.745518',
                 'avatar_url' => 'https://api.dicebear.com/7.x/avataaars/svg?seed=john',
@@ -52,7 +55,7 @@ class DumpedDatabaseSeeder extends Seeder
                 'id' => 29,
                 'name' => 'Jane Manager',
                 'email' => 'jane@example.com',
-                'password' => '$2b$10$mBLP2mvLBsoI52vGDQppbONhKm9bi4Huq4zHc4RJDF/RNbFrr2qtK',
+                'password' => $demoPassword,
                 'created_at' => '2026-02-20 04:56:53.745518',
                 'updated_at' => '2026-02-20 04:56:53.745518',
                 'avatar_url' => 'https://api.dicebear.com/7.x/avataaars/svg?seed=jane',
@@ -62,7 +65,7 @@ class DumpedDatabaseSeeder extends Seeder
                 'id' => 30,
                 'name' => 'Bob Manager',
                 'email' => 'bob@example.com',
-                'password' => '$2b$10$mBLP2mvLBsoI52vGDQppbONhKm9bi4Huq4zHc4RJDF/RNbFrr2qtK',
+                'password' => $demoPassword,
                 'created_at' => '2026-02-20 04:56:53.745518',
                 'updated_at' => '2026-02-20 04:56:53.745518',
                 'avatar_url' => 'https://api.dicebear.com/7.x/avataaars/svg?seed=bob',
@@ -72,7 +75,7 @@ class DumpedDatabaseSeeder extends Seeder
                 'id' => 31,
                 'name' => 'Alice Developer',
                 'email' => 'alice@example.com',
-                'password' => '$2b$10$mBLP2mvLBsoI52vGDQppbONhKm9bi4Huq4zHc4RJDF/RNbFrr2qtK',
+                'password' => $demoPassword,
                 'created_at' => '2026-02-20 04:56:53.745518',
                 'updated_at' => '2026-02-20 04:56:53.745518',
                 'avatar_url' => 'https://api.dicebear.com/7.x/avataaars/svg?seed=alice',
@@ -82,7 +85,7 @@ class DumpedDatabaseSeeder extends Seeder
                 'id' => 32,
                 'name' => 'Charlie Designer',
                 'email' => 'charlie@example.com',
-                'password' => '$2b$10$mBLP2mvLBsoI52vGDQppbONhKm9bi4Huq4zHc4RJDF/RNbFrr2qtK',
+                'password' => $demoPassword,
                 'created_at' => '2026-02-20 04:56:53.745518',
                 'updated_at' => '2026-02-20 04:56:53.745518',
                 'avatar_url' => 'https://api.dicebear.com/7.x/avataaars/svg?seed=charlie',
@@ -92,7 +95,7 @@ class DumpedDatabaseSeeder extends Seeder
                 'id' => 33,
                 'name' => 'Dave Developer',
                 'email' => 'dave@example.com',
-                'password' => '$2b$10$mBLP2mvLBsoI52vGDQppbONhKm9bi4Huq4zHc4RJDF/RNbFrr2qtK',
+                'password' => $demoPassword,
                 'created_at' => '2026-02-20 04:56:53.745518',
                 'updated_at' => '2026-02-20 04:56:53.745518',
                 'avatar_url' => 'https://api.dicebear.com/7.x/avataaars/svg?seed=dave',
@@ -102,7 +105,7 @@ class DumpedDatabaseSeeder extends Seeder
                 'id' => 34,
                 'name' => 'Test User',
                 'email' => 'unique@example.com',
-                'password' => '$2b$10$KatrGqlNCGdZbrU4Oe/Jl.UmfSzuZesSL3k51C0QvQRv3utzPuBq6',
+                'password' => $demoPassword,
                 'created_at' => '2026-03-05 17:18:19.064589',
                 'updated_at' => '2026-03-05 17:18:19.064589',
                 'avatar_url' => null,

@@ -7,6 +7,15 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class RefreshTokenRequest extends FormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        if (! $this->has('refresh_token') && $this->cookie('refreshToken') !== null) {
+            $this->merge([
+                'refresh_token' => $this->cookie('refreshToken'),
+            ]);
+        }
+    }
+
     /**
      * Determine if the user is authorized to make this request.
      */
