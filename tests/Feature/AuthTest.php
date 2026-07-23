@@ -4,21 +4,42 @@ use App\Models\AuthToken;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
+function expectSafeUserResponse(array $user): void
+{
+    expect($user)->not->toHaveKeys([
+        'password',
+        'remember_token',
+        'rememberToken',
+        'authTokens',
+        'auth_tokens',
+        'refreshTokens',
+        'refresh_tokens',
+        'token_hash',
+        'hash_token',
+    ]);
+}
+
 test('a user can register and receive token pair', function () {
-    $this->postJson('/api/v1/auth/register', [
+    $response = $this->postJson('/api/v1/auth/register', [
         'name' => 'Dian',
         'email' => 'dian@example.com',
         'password' => 'password',
     ])
         ->assertCreated()
-        ->assertJsonPath('user.email', 'dian@example.com')
-        ->assertJsonPath('user.role', 'teamMember')
+        ->assertJsonPath('data.user.email', 'dian@example.com')
+        ->assertJsonPath('data.user.role', 'teamMember')
+        ->assertJsonPath('data.tokenType', 'Bearer')
         ->assertJsonStructure([
-            'user' => ['id', 'name', 'email', 'role'],
-            'accessToken',
-            'refreshToken',
+            'data' => [
+                'user' => ['id', 'name', 'email', 'role'],
+                'accessToken',
+                'refreshToken',
+                'tokenType',
+                'expiresIn',
+            ],
         ]);
 
+    expectSafeUserResponse($response->json('data.user'));
     expect(AuthToken::query()->count())->toBe(2);
 });
 
@@ -33,13 +54,15 @@ test('a user can login and fetch their profile with an access token', function (
         'password' => 'password',
     ])
         ->assertOk()
-        ->assertJsonPath('user.id', $user->id)
-        ->json('accessToken');
+        ->assertJsonPath('data.user.id', $user->id)
+        ->json('data.accessToken');
 
-    $this->withToken($accessToken)
+    $profileResponse = $this->withToken($accessToken)
         ->getJson('/api/v1/auth/me')
         ->assertOk()
         ->assertJsonPath('data.user.email', 'dian@example.com');
+
+    expectSafeUserResponse($profileResponse->json('data.user'));
 });
 
 test('seeded demo users can login with the demo password', function () {
@@ -50,7 +73,7 @@ test('seeded demo users can login with the demo password', function () {
         'password' => 'password',
     ])
         ->assertOk()
-        ->assertJsonPath('user.email', 'admin@example.com');
+        ->assertJsonPath('data.user.email', 'admin@example.com');
 });
 
 test('invalid credentials are rejected', function () {
@@ -89,15 +112,19 @@ test('a refresh token can be rotated', function () {
     $refreshToken = $this->postJson('/api/v1/auth/login', [
         'email' => 'dian@example.com',
         'password' => 'password',
-    ])->json('refreshToken');
+    ])->json('data.refreshToken');
 
     $this->postJson('/api/v1/auth/refresh', [
         'refresh_token' => $refreshToken,
     ])
         ->assertOk()
         ->assertJsonStructure([
-            'accessToken',
-            'refreshToken',
+            'data' => [
+                'accessToken',
+                'refreshToken',
+                'tokenType',
+                'expiresIn',
+            ],
         ]);
 
     $this->postJson('/api/v1/auth/refresh', [
@@ -114,7 +141,7 @@ test('logout revokes the current access token', function () {
     $accessToken = $this->postJson('/api/v1/auth/login', [
         'email' => 'dian@example.com',
         'password' => 'password',
-    ])->json('accessToken');
+    ])->json('data.accessToken');
 
     $this->withToken($accessToken)
         ->postJson('/api/v1/auth/logout')

@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\ProjectController;
 use App\Http\Controllers\Api\V1\TaskController;
 use App\Http\Controllers\Api\V1\TeamController;
+use App\Http\Controllers\Api\V1\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->name('api.v1.')->group(function (): void {
@@ -40,10 +41,16 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
         Route::patch('notifications/{notification}/read', [NotificationController::class, 'markAsRead'])
             ->name('notifications.read');
 
+        Route::post('users/{user}/avatar', [UserController::class, 'avatar'])
+            ->name('users.avatar');
+        Route::get('users/{user}/tasks', [UserController::class, 'tasks'])
+            ->name('users.tasks');
+
         Route::apiResources([
             'projects' => ProjectController::class,
             'tasks' => TaskController::class,
             'teams' => TeamController::class,
+            'users' => UserController::class,
             'comments' => CommentController::class,
             'attachments' => AttachmentController::class,
         ]);
