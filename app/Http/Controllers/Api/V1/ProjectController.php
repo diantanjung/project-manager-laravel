@@ -103,7 +103,7 @@ class ProjectController extends Controller
     public function assignTeam(AssignProjectTeamRequest $request, Project $project): JsonResponse
     {
         $validated = $request->validated();
-        $team = Team::query()->findOrFail($validated['team_id']);
+        $team = Team::query()->findOrFail((int) $validated['team_id']);
 
         if ($project->assignedTeams()->whereKey($team->id)->exists()) {
             return response()->json([

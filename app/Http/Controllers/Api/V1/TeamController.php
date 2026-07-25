@@ -96,7 +96,7 @@ class TeamController extends Controller
     {
         $validated = $request->validated();
 
-        $user = User::query()->findOrFail($validated['user_id']);
+        $user = User::query()->findOrFail((int) $validated['user_id']);
 
         if ($team->members()->whereKey($user->id)->exists()) {
             return response()->json([

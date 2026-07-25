@@ -27,6 +27,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $remember_token
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property-read UserRelationshipPivot $pivot
  *
  * @method bool|null delete()
  */
@@ -102,11 +103,12 @@ class User extends Authenticatable
     }
 
     /**
-     * @return BelongsToMany<Team, $this>
+     * @return BelongsToMany<Team, $this, UserRelationshipPivot>
      */
     public function teams(): BelongsToMany
     {
         return $this->belongsToMany(Team::class, 'team_members')
+            ->using(UserRelationshipPivot::class)
             ->withPivot(['role', 'joined_at']);
     }
 

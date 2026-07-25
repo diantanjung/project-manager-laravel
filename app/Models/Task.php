@@ -117,11 +117,12 @@ class Task extends Model
     }
 
     /**
-     * @return BelongsToMany<User, $this>
+     * @return BelongsToMany<User, $this, UserRelationshipPivot>
      */
     public function assignedUsers(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'task_assignments')
+            ->using(UserRelationshipPivot::class)
             ->withPivot(['assigned_by', 'created_at', 'updated_at']);
     }
 }

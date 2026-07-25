@@ -106,7 +106,7 @@ class TaskController extends Controller
     public function assignUser(StoreTaskAssignmentRequest $request, Task $task): JsonResponse
     {
         $validated = $request->validated();
-        $user = User::query()->findOrFail($validated['user_id']);
+        $user = User::query()->findOrFail((int) $validated['user_id']);
 
         if ($task->assignedUsers()->whereKey($user->id)->exists()) {
             return response()->json([

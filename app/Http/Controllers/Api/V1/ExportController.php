@@ -15,7 +15,7 @@ class ExportController extends Controller
     public function projectReport(StoreProjectReportExportRequest $request): JsonResponse
     {
         $validated = $request->validated();
-        $project = Project::query()->findOrFail($validated['project_id']);
+        $project = Project::query()->findOrFail((int) $validated['project_id']);
 
         $export = Export::query()->create([
             'type' => 'project-report',

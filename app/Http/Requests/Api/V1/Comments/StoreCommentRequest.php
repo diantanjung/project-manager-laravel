@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Api\V1\Comments;
 
+use App\Models\Task;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -33,9 +34,13 @@ class StoreCommentRequest extends FormRequest
     {
         $task = $this->route('task');
 
-        if ($task !== null) {
+        if ($task instanceof Task) {
             $this->merge([
-                'task_id' => (int) (is_object($task) ? $task->getKey() : $task),
+                'task_id' => (int) $task->getKey(),
+            ]);
+        } elseif (is_numeric($task)) {
+            $this->merge([
+                'task_id' => (int) $task,
             ]);
         }
     }
