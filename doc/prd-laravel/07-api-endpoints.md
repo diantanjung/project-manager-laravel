@@ -60,8 +60,6 @@
 - `GET /api/v1/tasks/{task}/activity`
 - `POST /api/v1/tasks/{task}/assignments`
 - `DELETE /api/v1/tasks/{task}/assignments/{user}`
-- `POST /api/v1/tasks/{task}/dependencies`
-- `DELETE /api/v1/tasks/{task}/dependencies/{dependency}`
 
 ### Checklists
 

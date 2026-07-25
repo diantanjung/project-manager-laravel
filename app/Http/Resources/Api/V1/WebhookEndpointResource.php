@@ -2,12 +2,12 @@
 
 namespace App\Http\Resources\Api\V1;
 
-use App\Models\Team;
+use App\Models\WebhookEndpoint;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/** @mixin Team */
-class TeamResource extends JsonResource
+/** @mixin WebhookEndpoint */
+class WebhookEndpointResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -19,14 +19,11 @@ class TeamResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'description' => $this->description,
+            'url' => $this->url,
+            'events' => $this->events,
+            'isActive' => $this->is_active,
             'createdAt' => $this->created_at?->toIso8601String(),
             'updatedAt' => $this->updated_at?->toIso8601String(),
-            'members' => UserResource::collection($this->whenLoaded('members')),
-            'assignedProjects' => ProjectResource::collection($this->whenLoaded('assignedProjects')),
-            'projectAssignment' => $this->whenPivotLoaded('project_teams', fn (): array => [
-                'assignedAt' => $this->pivot->assigned_at,
-            ]),
         ];
     }
 }

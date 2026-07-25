@@ -11,7 +11,6 @@
 - Mention parser.
 - Webhook signature generator/verifier.
 - Token hashing/expiry.
-- Task dependency validation.
 - Storage path generator.
 
 ### Feature Tests
@@ -22,7 +21,6 @@
 - Project CRUD and visibility scope.
 - Task CRUD and visibility scope.
 - Task reorder transaction.
-- Task dependency blocks completion.
 - Comment mention creates notification.
 - Attachment upload/delete using fake storage.
 - Notification mark read.
@@ -87,7 +85,6 @@ Demo credentials harus ditulis di README hanya untuk local/staging demo, bukan p
 ### Milestone 4 - Advanced Product Features
 
 - Checklist.
-- Dependency/blocker.
 - Kanban reorder.
 - Dashboard.
 - Export CSV.

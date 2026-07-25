@@ -4,7 +4,7 @@ Sumber utama: [PRD modular](prd-laravel.md)
 
 Dokumen ini hanya berisi roadmap high-level. Detail scope, domain model, endpoint, requirement fitur, deployment, dan testing ada di folder [prd-laravel](prd-laravel/).
 
-Terakhir dicek: 23 Juli 2026. Test suite: `php artisan test --compact` lulus dengan 23 test dan 105 assertion.
+Terakhir dicek: 25 Juli 2026. Test suite: `php artisan test --compact` lulus dengan 45 test dan 294 assertion.
 
 ## Phase 1 - Foundation
 
@@ -22,7 +22,7 @@ Terakhir dicek: 23 Juli 2026. Test suite: `php artisan test --compact` lulus den
 
 ## Phase 3 - Core Project Management
 
-- [ ] Implement domain inti: team, member, project, project-team assignment, task, dan task assignment.
+- [x] Implement domain inti: team, member, project, project-team assignment, task, dan task assignment.
 - [x] Implement CRUD dan list endpoint untuk team, project, dan task.
 - [ ] Implement search, filter, sort, pagination, dan eager loading untuk query utama.
 - [ ] Implement policies agar akses resource sesuai role dan scope project/team.
@@ -36,9 +36,9 @@ Terakhir dicek: 23 Juli 2026. Test suite: `php artisan test --compact` lulus den
 
 ## Phase 5 - Portfolio Enhancements
 
-- [ ] Implement Kanban reorder yang atomik.
+- [x] Implement Kanban reorder yang atomik.
 - [ ] Implement checklist/subtask dan task dependency/blocker.
-- [ ] Implement dashboard summary dan reporting dasar.
+- [x] Implement dashboard summary dan reporting dasar.
 - [ ] Implement export CSV, saved filters, public share link, atau admin audit dashboard sesuai prioritas P1.
 
 ## Phase 6 - Integration dan Automation
@@ -52,7 +52,7 @@ Terakhir dicek: 23 Juli 2026. Test suite: `php artisan test --compact` lulus den
 
 - [ ] Implement observers/events untuk audit, notification, cleanup, dan side effect penting.
 - [ ] Tambahkan structured logging, request/correlation ID, dan error JSON konsisten.
-- [ ] Tambahkan rate limit untuk endpoint sensitif.
+- [x] Tambahkan rate limit untuk endpoint sensitif.
 - [ ] Pastikan job failure, retry, dan operational error mudah ditelusuri.
 
 ## Phase 8 - Demo dan Documentation
@@ -73,7 +73,7 @@ Terakhir dicek: 23 Juli 2026. Test suite: `php artisan test --compact` lulus den
 ## Testing High-Level
 
 - [ ] Unit test domain logic penting: role, policy, token, mention, webhook signature, dependency, dan storage path.
-- [ ] Feature test flow utama: auth, user, team, project, task, comment, attachment, notification, activity, dashboard, export, dan webhook.
+- [x] Feature test flow utama: auth, user, team, project, task, comment, attachment, notification, activity, dashboard, export, dan webhook.
 - [ ] Smoke test deployment: health check, migration, login demo user, R2 upload, queue worker, dan scheduler command.
 
 ## Final Acceptance

@@ -8,27 +8,26 @@ use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
+ * @property string $type
+ * @property string $status
  * @property string $file_name
  * @property string $file_url
- * @property int|null $file_size
- * @property string|null $mime_type
- * @property int $task_id
- * @property int $uploader_id
+ * @property array<string, mixed>|null $filters
+ * @property int $created_by
  * @property Carbon|null $created_at
- * @property-read Task $task
- * @property-read User $uploader
+ * @property Carbon|null $updated_at
  *
  * @method bool|null delete()
  */
-class Attachment extends Model
+class Export extends Model
 {
     protected $fillable = [
+        'type',
+        'status',
         'file_name',
         'file_url',
-        'file_size',
-        'mime_type',
-        'task_id',
-        'uploader_id',
+        'filters',
+        'created_by',
     ];
 
     /**
@@ -37,23 +36,15 @@ class Attachment extends Model
     protected function casts(): array
     {
         return [
-            'file_size' => 'integer',
+            'filters' => 'array',
         ];
-    }
-
-    /**
-     * @return BelongsTo<Task, $this>
-     */
-    public function task(): BelongsTo
-    {
-        return $this->belongsTo(Task::class);
     }
 
     /**
      * @return BelongsTo<User, $this>
      */
-    public function uploader(): BelongsTo
+    public function creator(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'uploader_id');
+        return $this->belongsTo(User::class, 'created_by');
     }
 }

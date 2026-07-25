@@ -31,4 +31,15 @@ class StoreAttachmentRequest extends FormRequest
             'uploader_id' => ['required', 'integer', 'exists:users,id'],
         ];
     }
+
+    protected function prepareForValidation(): void
+    {
+        $task = $this->route('task');
+
+        if ($task !== null) {
+            $this->merge([
+                'task_id' => (int) (is_object($task) ? $task->getKey() : $task),
+            ]);
+        }
+    }
 }

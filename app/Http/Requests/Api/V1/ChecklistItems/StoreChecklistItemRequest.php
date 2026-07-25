@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Http\Requests\Api\V1\Comments;
+namespace App\Http\Requests\Api\V1\ChecklistItems;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreCommentRequest extends FormRequest
+class StoreChecklistItemRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -23,9 +23,10 @@ class StoreCommentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'content' => ['required', 'string'],
             'task_id' => ['required', 'integer', 'exists:tasks,id'],
-            'author_id' => ['required', 'integer', 'exists:users,id'],
+            'title' => ['required', 'string', 'max:255'],
+            'is_checked' => ['sometimes', 'boolean'],
+            'position' => ['sometimes', 'integer', 'min:0'],
         ];
     }
 

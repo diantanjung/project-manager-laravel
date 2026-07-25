@@ -12,6 +12,8 @@ use Illuminate\Support\Carbon;
  * @property string|null $description
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ *
+ * @method bool|null delete()
  */
 class Team extends Model
 {

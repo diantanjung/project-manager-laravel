@@ -8,27 +8,22 @@ use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
- * @property string $file_name
- * @property string $file_url
- * @property int|null $file_size
- * @property string|null $mime_type
  * @property int $task_id
- * @property int $uploader_id
+ * @property string $title
+ * @property bool $is_checked
+ * @property int $position
  * @property Carbon|null $created_at
- * @property-read Task $task
- * @property-read User $uploader
+ * @property Carbon|null $updated_at
  *
  * @method bool|null delete()
  */
-class Attachment extends Model
+class ChecklistItem extends Model
 {
     protected $fillable = [
-        'file_name',
-        'file_url',
-        'file_size',
-        'mime_type',
         'task_id',
-        'uploader_id',
+        'title',
+        'is_checked',
+        'position',
     ];
 
     /**
@@ -37,7 +32,8 @@ class Attachment extends Model
     protected function casts(): array
     {
         return [
-            'file_size' => 'integer',
+            'is_checked' => 'boolean',
+            'position' => 'integer',
         ];
     }
 
@@ -47,13 +43,5 @@ class Attachment extends Model
     public function task(): BelongsTo
     {
         return $this->belongsTo(Task::class);
-    }
-
-    /**
-     * @return BelongsTo<User, $this>
-     */
-    public function uploader(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'uploader_id');
     }
 }

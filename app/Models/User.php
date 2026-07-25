@@ -27,6 +27,8 @@ use Illuminate\Support\Carbon;
  * @property string|null $remember_token
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ *
+ * @method bool|null delete()
  */
 #[Fillable(['name', 'email', 'password', 'role', 'avatar_url', 'is_active', 'last_login_at'])]
 #[Hidden(['password', 'remember_token', 'authTokens', 'refreshTokens'])]

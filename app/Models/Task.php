@@ -8,6 +8,7 @@ use App\Observers\TaskObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
@@ -27,6 +28,8 @@ use Illuminate\Support\Carbon;
  * @property-read Project $project
  * @property-read User $creator
  * @property-read User $assignee
+ *
+ * @method bool|null delete()
  */
 #[ObservedBy([TaskObserver::class])]
 class Task extends Model
@@ -103,5 +106,22 @@ class Task extends Model
     public function attachments(): HasMany
     {
         return $this->hasMany(Attachment::class);
+    }
+
+    /**
+     * @return HasMany<ChecklistItem, $this>
+     */
+    public function checklistItems(): HasMany
+    {
+        return $this->hasMany(ChecklistItem::class);
+    }
+
+    /**
+     * @return BelongsToMany<User, $this>
+     */
+    public function assignedUsers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'task_assignments')
+            ->withPivot(['assigned_by', 'created_at', 'updated_at']);
     }
 }

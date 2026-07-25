@@ -38,7 +38,7 @@ Acceptance criteria:
 - `ProjectObserver`: activity log untuk status dan owner changes.
 - `CommentObserver`: activity log dan mention extraction.
 - `AttachmentObserver`: cleanup storage saat delete.
-- `TeamMemberObserver`: audit role/member changes.
+- Audit perubahan membership team pada flow attach/detach/update pivot `team_members`.
 
 ## 16. Database Requirements
 
