@@ -6,5 +6,6 @@ Source of truth untuk dokumen lintas aplikasi ada di backend:
 - PRD: `../../project-manager-be/doc/prd.md`
 - Improvement PRD Laravel : `prd-laravel.md`
 - todo : `todo.md`
+- Intelephense Laravel/Pest guide: `intelephense-laravel-pest.md`
 
 Jika ada perbedaan kontrak API, PRD, atau yang lain, ikuti dokumen backend.

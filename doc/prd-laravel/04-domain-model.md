@@ -34,15 +34,7 @@
 - `created_at`
 - `updated_at`
 
-### 11.4 TeamMember
-
-- `id`
-- `team_id`
-- `user_id`
-- `role`
-- `joined_at`
-
-### 11.5 Project
+### 11.4 Project
 
 - `id`
 - `name`
@@ -55,14 +47,7 @@
 - `created_at`
 - `updated_at`
 
-### 11.6 ProjectTeam
-
-- `id`
-- `project_id`
-- `team_id`
-- `created_at`
-
-### 11.7 Task
+### 11.5 Task
 
 - `id`
 - `title`
@@ -79,15 +64,7 @@
 - `created_at`
 - `updated_at`
 
-### 11.8 TaskAssignment
-
-- `id`
-- `task_id`
-- `user_id`
-- `assigned_by`
-- `created_at`
-
-### 11.9 Comment
+### 11.6 Comment
 
 - `id`
 - `task_id`
@@ -96,7 +73,7 @@
 - `created_at`
 - `updated_at`
 
-### 11.10 Attachment
+### 11.7 Attachment
 
 - `id`
 - `task_id`
@@ -108,7 +85,7 @@
 - `size`
 - `created_at`
 
-### 11.11 Notification
+### 11.8 Notification
 
 - `id`
 - `recipient_id`
@@ -120,7 +97,7 @@
 - `read_at`
 - `created_at`
 
-### 11.12 ActivityLog
+### 11.9 ActivityLog
 
 - `id`
 - `actor_id`
@@ -133,7 +110,7 @@
 - `user_agent`
 - `created_at`
 
-### 11.13 WebhookEndpoint
+### 11.10 WebhookEndpoint
 
 - `id`
 - `name`
@@ -144,7 +121,7 @@
 - `created_at`
 - `updated_at`
 
-### 11.14 WebhookDelivery
+### 11.11 WebhookDelivery
 
 - `id`
 - `webhook_endpoint_id`
@@ -157,14 +134,61 @@
 - `created_at`
 - `updated_at`
 
+### 11.12 Pivot / Intermediate Tables
+
+Tabel berikut bukan model domain Eloquent terpisah. Sesuai konsep many-to-many Laravel, data tambahan di tabel intermediate diakses melalui relasi `belongsToMany()` dan atribut `pivot` dengan `withPivot()`. Jangan membuat `App\Models\TeamMember`, `App\Models\ProjectTeam`, atau `App\Models\TaskAssignment` kecuali nantinya benar-benar diperlukan custom pivot model yang extend `Illuminate\Database\Eloquent\Relations\Pivot`.
+
+#### team_members
+
+Relasi:
+
+- `Team::members()`
+- `User::teams()`
+
+Kolom:
+
+- `id`
+- `team_id`
+- `user_id`
+- `role`
+- `joined_at`
+
+#### project_teams
+
+Relasi:
+
+- `Project::assignedTeams()`
+- `Team::assignedProjects()`
+
+Kolom:
+
+- `id`
+- `project_id`
+- `team_id`
+- `assigned_at`
+
+#### task_assignments
+
+Relasi:
+
+- `Task::assignedUsers()`
+
+Kolom:
+
+- `task_id`
+- `user_id`
+- `assigned_by`
+- `created_at`
+- `updated_at`
+
 ## 12. Enum
 
 ```text
-UserRole         = admin | productOwner | projectManager | teamMember
-TeamMemberRole   = owner | admin | member
-ProjectStatus    = planning | active | paused | completed | archived
-TaskStatus       = backlog | todo | in_progress | review | done
-TaskPriority     = low | medium | high | urgent
-NotificationType = task_assigned | mention | task_due | project_update | system_alert
-WebhookEvent     = task.created | task.updated | task.completed | comment.created | project.updated
+UserRole           = admin | productOwner | projectManager | teamMember
+TeamMembershipRole = owner | admin | member
+ProjectStatus      = planning | active | paused | completed | archived
+TaskStatus         = backlog | todo | in_progress | review | done
+TaskPriority       = low | medium | high | urgent
+NotificationType   = task_assigned | mention | task_due | project_update | system_alert
+WebhookEvent       = task.created | task.updated | task.completed | comment.created | project.updated
 ```

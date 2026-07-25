@@ -10,7 +10,7 @@ Produk ini tidak bergantung pada repo backend lain. Repository baru harus dapat 
 
 ## 2. Tujuan Produk
 
-1. Membantu team mengorganize pekerjaan, ownership, deadline, blocker, dan progress project secara terpusat.
+1. Membantu team mengorganize pekerjaan, ownership, deadline, dan progress project secara terpusat.
 2. Memastikan project manager dan stakeholder memiliki visibility yang jelas terhadap status delivery.
 3. Menyediakan REST API yang aman, konsisten, terdokumentasi, dan mudah diintegrasikan dengan frontend.
 4. Mendukung workflow task dari perencanaan, assignment, kolaborasi, review, sampai selesai.
@@ -19,7 +19,7 @@ Produk ini tidak bergantung pada repo backend lain. Repository baru harus dapat 
 
 ## 3. Problem Statement
 
-Tim produk sering mengelola pekerjaan melalui banyak tempat: chat, spreadsheet, issue tracker, dokumen, dan meeting notes. Akibatnya ownership task, progress, due date, blocker, attachment, dan keputusan teknis tidak selalu terlihat jelas.
+Tim produk sering mengelola pekerjaan melalui banyak tempat: chat, spreadsheet, issue tracker, dokumen, dan meeting notes. Akibatnya ownership task, progress, due date, attachment, dan keputusan teknis tidak selalu terlihat jelas.
 
 Project Manager Laravel menyediakan satu backend API untuk mengelola proyek, tim, task, komentar, attachment, notifikasi, audit trail, dan automasi operasional agar tim dapat bekerja lebih terstruktur dan terukur.
 
@@ -29,7 +29,7 @@ Project Manager Laravel menyediakan satu backend API untuk mengelola proyek, tim
 | --- | --- |
 | Admin | Mengelola user, role, dan konfigurasi global |
 | Product Owner | Mengelola portfolio project, team, priority, dan delivery visibility |
-| Project Manager | Membuat project, mengatur task, assign member, memantau progress, dan mengelola blocker |
+| Project Manager | Membuat project, mengatur task, assign member, dan memantau progress |
 | Team Member | Melihat task, update status, komentar, upload attachment, dan menerima notifikasi |
 | External Stakeholder | Melihat project summary terbatas dan export/report yang dibagikan |
 
@@ -58,7 +58,6 @@ Project Manager Laravel menyediakan satu backend API untuk mengelola proyek, tim
 
 - Kanban reorder endpoint yang atomik.
 - Task checklist/subtask.
-- Task dependency/blocker.
 - Saved filters.
 - Notification digest via scheduled job.
 - Overdue task reminder.

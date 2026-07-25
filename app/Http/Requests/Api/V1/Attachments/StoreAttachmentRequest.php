@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Api\V1\Attachments;
 
+use App\Models\Task;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -30,5 +31,20 @@ class StoreAttachmentRequest extends FormRequest
             'task_id' => ['required', 'integer', 'exists:tasks,id'],
             'uploader_id' => ['required', 'integer', 'exists:users,id'],
         ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $task = $this->route('task');
+
+        if ($task instanceof Task) {
+            $this->merge([
+                'task_id' => (int) $task->getKey(),
+            ]);
+        } elseif (is_numeric($task)) {
+            $this->merge([
+                'task_id' => (int) $task,
+            ]);
+        }
     }
 }

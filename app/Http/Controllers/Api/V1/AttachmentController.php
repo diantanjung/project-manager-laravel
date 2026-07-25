@@ -8,6 +8,7 @@ use App\Http\Requests\Api\V1\Attachments\UpdateAttachmentRequest;
 use App\Http\Resources\Api\V1\AttachmentResource;
 use App\Models\Attachment;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
 
@@ -37,6 +38,11 @@ class AttachmentController extends Controller
         return new AttachmentResource(
             $attachment->load(['task', 'uploader'])
         );
+    }
+
+    public function download(Attachment $attachment): RedirectResponse
+    {
+        return redirect()->away($attachment->file_url);
     }
 
     public function update(UpdateAttachmentRequest $request, Attachment $attachment): AttachmentResource

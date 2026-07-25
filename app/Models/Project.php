@@ -16,6 +16,8 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read User $owner
+ *
+ * @method bool|null delete()
  */
 class Project extends Model
 {
@@ -34,11 +36,12 @@ class Project extends Model
     }
 
     /**
-     * @return BelongsToMany<Team, $this>
+     * @return BelongsToMany<Team, $this, ProjectTeamPivot>
      */
     public function assignedTeams(): BelongsToMany
     {
         return $this->belongsToMany(Team::class, 'project_teams')
+            ->using(ProjectTeamPivot::class)
             ->withPivot(['assigned_at']);
     }
 

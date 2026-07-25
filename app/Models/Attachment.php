@@ -17,6 +17,8 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property-read Task $task
  * @property-read User $uploader
+ *
+ * @method bool|null delete()
  */
 class Attachment extends Model
 {

@@ -27,6 +27,9 @@ use Illuminate\Support\Carbon;
  * @property string|null $remember_token
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property-read UserRelationshipPivot $pivot
+ *
+ * @method bool|null delete()
  */
 #[Fillable(['name', 'email', 'password', 'role', 'avatar_url', 'is_active', 'last_login_at'])]
 #[Hidden(['password', 'remember_token', 'authTokens', 'refreshTokens'])]
@@ -100,11 +103,12 @@ class User extends Authenticatable
     }
 
     /**
-     * @return BelongsToMany<Team, $this>
+     * @return BelongsToMany<Team, $this, UserRelationshipPivot>
      */
     public function teams(): BelongsToMany
     {
         return $this->belongsToMany(Team::class, 'team_members')
+            ->using(UserRelationshipPivot::class)
             ->withPivot(['role', 'joined_at']);
     }
 

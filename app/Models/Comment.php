@@ -15,6 +15,8 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $updated_at
  * @property-read Task $task
  * @property-read User $author
+ *
+ * @method bool|null delete()
  */
 class Comment extends Model
 {

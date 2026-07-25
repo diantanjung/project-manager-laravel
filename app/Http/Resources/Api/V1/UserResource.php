@@ -27,6 +27,15 @@ class UserResource extends JsonResource
             'lastLoginAt' => $this->last_login_at?->toIso8601String(),
             'createdAt' => $this->created_at?->toIso8601String(),
             'updatedAt' => $this->updated_at?->toIso8601String(),
+            'membership' => $this->whenPivotLoaded('team_members', fn (): array => [
+                'role' => $this->pivot->role,
+                'joinedAt' => $this->pivot->joined_at,
+            ]),
+            'taskAssignment' => $this->whenPivotLoaded('task_assignments', fn (): array => [
+                'assignedBy' => $this->pivot->assigned_by,
+                'createdAt' => $this->pivot->created_at?->toIso8601String(),
+                'updatedAt' => $this->pivot->updated_at?->toIso8601String(),
+            ]),
         ];
     }
 }

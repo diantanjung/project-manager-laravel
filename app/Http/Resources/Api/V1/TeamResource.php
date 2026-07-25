@@ -24,6 +24,9 @@ class TeamResource extends JsonResource
             'updatedAt' => $this->updated_at?->toIso8601String(),
             'members' => UserResource::collection($this->whenLoaded('members')),
             'assignedProjects' => ProjectResource::collection($this->whenLoaded('assignedProjects')),
+            'projectAssignment' => $this->whenPivotLoaded('project_teams', fn (): array => [
+                'assignedAt' => $this->pivot->assigned_at,
+            ]),
         ];
     }
 }

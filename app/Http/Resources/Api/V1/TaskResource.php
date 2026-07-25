@@ -34,6 +34,8 @@ class TaskResource extends JsonResource
             'assignee' => new UserResource($this->whenLoaded('assignee')),
             'comments' => CommentResource::collection($this->whenLoaded('comments')),
             'attachments' => AttachmentResource::collection($this->whenLoaded('attachments')),
+            'checklistItems' => ChecklistItemResource::collection($this->whenLoaded('checklistItems')),
+            'assignedUsers' => UserResource::collection($this->whenLoaded('assignedUsers')),
         ];
     }
 }

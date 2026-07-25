@@ -54,13 +54,10 @@ Requirements:
 - Project Manager dapat reorder task secara atomik.
 - Task update menghasilkan activity log.
 
-### 13.6 Checklist dan Dependency
+### 13.6 Checklist
 
 - Task dapat memiliki checklist item.
 - Checklist item memiliki title, checked state, dan position.
-- Task dapat diblokir oleh task lain.
-- Task tidak boleh `done` jika dependency wajib belum selesai.
-- Project summary menampilkan jumlah blocked task.
 
 ### 13.7 Comment dan Mention
 
@@ -106,8 +103,7 @@ Requirements:
   - task count per status;
   - overdue task count;
   - workload per member;
-  - recently updated tasks;
-  - blocked tasks.
+  - recently updated tasks.
 - Export CSV untuk project report dan task list.
 - Export dijalankan via job jika data besar.
 
