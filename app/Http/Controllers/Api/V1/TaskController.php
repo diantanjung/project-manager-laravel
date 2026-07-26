@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\V1\Tasks\IndexTaskRequest;
 use App\Http\Requests\Api\V1\Tasks\ReorderTasksRequest;
 use App\Http\Requests\Api\V1\Tasks\StoreTaskAssignmentRequest;
 use App\Http\Requests\Api\V1\Tasks\StoreTaskRequest;
@@ -16,6 +17,7 @@ use App\Http\Resources\Api\V1\UserResource;
 use App\Models\ActivityLog;
 use App\Models\Task;
 use App\Models\User;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
@@ -23,14 +25,68 @@ use Illuminate\Support\Facades\DB;
 
 class TaskController extends Controller
 {
-    public function index(): AnonymousResourceCollection
+    public function index(IndexTaskRequest $request): AnonymousResourceCollection
     {
-        return TaskResource::collection(
-            Task::query()
-                ->with(['project', 'creator', 'assignee'])
-                ->latest()
-                ->get()
-        );
+        $validated = $request->validated();
+        $limit = (int) ($validated['limit'] ?? 15);
+        $page = (int) ($validated['page'] ?? 1);
+        $sortBy = $validated['sortBy'] ?? 'created_at';
+        $order = $validated['order'] ?? 'desc';
+
+        /** @var LengthAwarePaginator<int, Task> $tasks */
+        $tasks = Task::query()
+            ->with(['project.owner', 'creator', 'assignee'])
+            ->when($validated['search'] ?? null, function ($query, string $search): void {
+                $normalizedSearch = '%'.strtolower($search).'%';
+
+                $query->where(function ($query) use ($normalizedSearch): void {
+                    $query->whereRaw('LOWER(title) LIKE ?', [$normalizedSearch])
+                        ->orWhereRaw('LOWER(description) LIKE ?', [$normalizedSearch]);
+                });
+            })
+            ->when($validated['status'] ?? null, function ($query, string $status): void {
+                $query->where('status', $status);
+            })
+            ->when($validated['priority'] ?? null, function ($query, string $priority): void {
+                $query->where('priority', $priority);
+            })
+            ->when($validated['projectId'] ?? null, function ($query, int $projectId): void {
+                $query->where('project_id', $projectId);
+            })
+            ->when($validated['creatorId'] ?? null, function ($query, int $creatorId): void {
+                $query->where('creator_id', $creatorId);
+            })
+            ->when($validated['assigneeId'] ?? null, function ($query, int $assigneeId): void {
+                $query->where('assignee_id', $assigneeId);
+            })
+            ->when($validated['dueFrom'] ?? null, function ($query, string $dueFrom): void {
+                $query->whereDate('due_date', '>=', $dueFrom);
+            })
+            ->when($validated['dueUntil'] ?? null, function ($query, string $dueUntil): void {
+                $query->whereDate('due_date', '<=', $dueUntil);
+            })
+            ->when(array_key_exists('hasDescription', $validated), function ($query) use ($request): void {
+                if ($request->boolean('hasDescription')) {
+                    $query->whereNotNull('description');
+
+                    return;
+                }
+
+                $query->whereNull('description');
+            })
+            ->orderBy($sortBy, $order)
+            ->paginate(perPage: $limit, page: $page)
+            ->withQueryString();
+
+        return TaskResource::collection($tasks)
+            ->additional([
+                'pagination' => [
+                    'page' => $tasks->currentPage(),
+                    'limit' => $tasks->perPage(),
+                    'totalItems' => $tasks->total(),
+                    'totalPages' => $tasks->lastPage(),
+                ],
+            ]);
     }
 
     public function store(StoreTaskRequest $request): JsonResponse

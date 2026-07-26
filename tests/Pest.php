@@ -1,5 +1,11 @@
 <?php
 
+use App\Enums\TaskPriority;
+use App\Enums\TaskStatus;
+use App\Models\Project;
+use App\Models\Task;
+use App\Models\User;
+use App\Services\Auth\AuthTokenService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -44,7 +50,38 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+function domainApiAccessToken(?User $user = null): string
 {
-    // ..
+    $user ??= User::factory()->create();
+
+    return app(AuthTokenService::class)->issueTokenPair($user)['accessToken'];
+}
+
+function domainApiProject(?User $owner = null): Project
+{
+    $owner ??= User::factory()->create();
+
+    return Project::query()->create([
+        'name' => 'Website redesign',
+        'description' => 'Refresh the marketing site',
+        'owner_id' => $owner->id,
+    ]);
+}
+
+function domainApiTask(?Project $project = null, ?User $creator = null, ?User $assignee = null): Task
+{
+    $creator ??= User::factory()->create();
+    $assignee ??= User::factory()->create();
+    $project ??= domainApiProject($creator);
+
+    return Task::withoutEvents(fn (): Task => Task::query()->create([
+        'title' => 'Create wireframes',
+        'description' => 'Initial homepage wireframes',
+        'status' => TaskStatus::Todo,
+        'priority' => TaskPriority::High,
+        'project_id' => $project->id,
+        'creator_id' => $creator->id,
+        'assignee_id' => $assignee->id,
+        'due_date' => '2026-08-01',
+    ]));
 }
