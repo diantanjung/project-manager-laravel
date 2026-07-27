@@ -127,4 +127,87 @@ class User extends Authenticatable
     {
         return $this->hasMany(Attachment::class, 'uploader_id');
     }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === UserRole::Admin;
+    }
+
+    public function canAccessProject(Project $project): bool
+    {
+        if ($this->isAdmin() || $project->owner_id === $this->id) {
+            return true;
+        }
+
+        return $project->assignedTeams()
+            ->whereHas('members', fn ($query) => $query->whereKey($this->id))
+            ->exists()
+            || $project->tasks()
+                ->where(function ($query): void {
+                    $query->where('creator_id', $this->id)
+                        ->orWhere('assignee_id', $this->id)
+                        ->orWhereHas('assignedUsers', fn ($query) => $query->whereKey($this->id));
+                })
+                ->exists();
+    }
+
+    public function canManageProject(Project $project): bool
+    {
+        if ($this->isAdmin() || $project->owner_id === $this->id) {
+            return true;
+        }
+
+        return $project->assignedTeams()
+            ->whereHas('members', function ($query): void {
+                $query->whereKey($this->id)
+                    ->whereIn('team_members.role', ['owner', 'admin']);
+            })
+            ->exists();
+    }
+
+    public function canAccessTask(Task $task): bool
+    {
+        if ($this->isAdmin() || $task->creator_id === $this->id || $task->assignee_id === $this->id) {
+            return true;
+        }
+
+        return $task->assignedUsers()
+            ->whereKey($this->id)
+            ->exists()
+            || $this->canAccessProject($task->project()->firstOrFail());
+    }
+
+    public function canManageTask(Task $task): bool
+    {
+        return $this->isAdmin()
+            || $task->creator_id === $this->id
+            || $task->assignee_id === $this->id
+            || $this->canManageProject($task->project()->firstOrFail());
+    }
+
+    public function canAccessTeam(Team $team): bool
+    {
+        if ($this->isAdmin()) {
+            return true;
+        }
+
+        return $team->members()
+            ->whereKey($this->id)
+            ->exists()
+            || $team->assignedProjects()
+                ->where('owner_id', $this->id)
+                ->exists();
+    }
+
+    public function canManageTeam(Team $team): bool
+    {
+        if ($this->isAdmin()) {
+            return true;
+        }
+
+        return $team->members()
+            ->whereKey($this->id)
+            ->whereIn('team_members.role', ['owner', 'admin'])
+            ->exists();
+    }
 }

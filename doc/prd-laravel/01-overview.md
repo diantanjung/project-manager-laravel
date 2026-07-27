@@ -57,7 +57,7 @@ Project Manager Laravel menyediakan satu backend API untuk mengelola proyek, tim
 ### 5.2 P1 Product Enhancements
 
 - Kanban reorder endpoint yang atomik.
-- Task checklist/subtask.
+- Task checklist.
 - Saved filters.
 - Notification digest via scheduled job.
 - Overdue task reminder.

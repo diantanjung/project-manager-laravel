@@ -15,12 +15,15 @@ use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 
 class UserController extends Controller
 {
     public function index(IndexUserRequest $request): AnonymousResourceCollection
     {
+        Gate::authorize('viewAny', User::class);
+
         $validated = $request->validated();
         $limit = (int) ($validated['limit'] ?? 15);
         $page = (int) ($validated['page'] ?? 1);
@@ -65,6 +68,8 @@ class UserController extends Controller
 
     public function store(StoreUserRequest $request): JsonResponse
     {
+        Gate::authorize('create', User::class);
+
         $user = User::query()->create($request->validated());
 
         return (new UserResource($user))
@@ -74,11 +79,15 @@ class UserController extends Controller
 
     public function show(User $user): UserResource
     {
+        Gate::authorize('view', $user);
+
         return new UserResource($user);
     }
 
     public function update(UpdateUserRequest $request, User $user): UserResource
     {
+        Gate::authorize('update', $user);
+
         $user->update($request->validated());
 
         return new UserResource($user);
@@ -86,6 +95,8 @@ class UserController extends Controller
 
     public function destroy(User $user): Response
     {
+        Gate::authorize('delete', $user);
+
         $user->delete();
 
         return response()->noContent();
@@ -93,6 +104,8 @@ class UserController extends Controller
 
     public function avatar(StoreUserAvatarRequest $request, User $user): UserResource
     {
+        Gate::authorize('update', $user);
+
         $avatarUrl = $request->validated('avatar_url');
 
         if ($request->hasFile('avatar')) {
@@ -115,6 +128,8 @@ class UserController extends Controller
 
     public function tasks(User $user): AnonymousResourceCollection
     {
+        Gate::authorize('view', $user);
+
         return TaskResource::collection(
             $user->assignedTasks()
                 ->with(['project', 'creator', 'assignee'])

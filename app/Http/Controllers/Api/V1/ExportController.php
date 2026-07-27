@@ -9,13 +9,18 @@ use App\Models\Export;
 use App\Models\Project;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Gate;
 
 class ExportController extends Controller
 {
     public function projectReport(StoreProjectReportExportRequest $request): JsonResponse
     {
+        Gate::authorize('create', Export::class);
+
         $validated = $request->validated();
         $project = Project::query()->findOrFail((int) $validated['project_id']);
+
+        Gate::authorize('view', $project);
 
         $export = Export::query()->create([
             'type' => 'project-report',
@@ -40,6 +45,8 @@ class ExportController extends Controller
 
     public function show(Export $export): ExportResource
     {
+        Gate::authorize('view', $export);
+
         return new ExportResource($export->load('creator'));
     }
 }

@@ -2,11 +2,28 @@
 
 namespace App\Providers;
 
+use App\Models\Attachment;
+use App\Models\ChecklistItem;
+use App\Models\Comment;
+use App\Models\Export;
+use App\Models\Project;
+use App\Models\Task;
+use App\Models\Team;
+use App\Models\User;
+use App\Policies\AttachmentPolicy;
+use App\Policies\ChecklistItemPolicy;
+use App\Policies\CommentPolicy;
+use App\Policies\ExportPolicy;
+use App\Policies\ProjectPolicy;
+use App\Policies\TaskPolicy;
+use App\Policies\TeamPolicy;
+use App\Policies\UserPolicy;
 use Carbon\CarbonImmutable;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
@@ -27,6 +44,15 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Gate::policy(Attachment::class, AttachmentPolicy::class);
+        Gate::policy(ChecklistItem::class, ChecklistItemPolicy::class);
+        Gate::policy(Comment::class, CommentPolicy::class);
+        Gate::policy(Export::class, ExportPolicy::class);
+        Gate::policy(Project::class, ProjectPolicy::class);
+        Gate::policy(Task::class, TaskPolicy::class);
+        Gate::policy(Team::class, TeamPolicy::class);
+        Gate::policy(User::class, UserPolicy::class);
+
         $this->configureDefaults();
     }
 

@@ -15,12 +15,16 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Gate;
 
 class TeamController extends Controller
 {
     public function index(IndexTeamRequest $request): AnonymousResourceCollection
     {
+        Gate::authorize('viewAny', Team::class);
+
         $validated = $request->validated();
+        $user = $request->user();
         $limit = (int) ($validated['limit'] ?? 15);
         $page = (int) ($validated['page'] ?? 1);
         $sortBy = $validated['sortBy'] ?? 'created_at';
@@ -35,6 +39,12 @@ class TeamController extends Controller
                 'created_at',
                 'updated_at',
             ])
+            ->when(! $user->isAdmin(), function ($query) use ($user): void {
+                $query->where(function ($query) use ($user): void {
+                    $query->whereHas('members', fn ($query) => $query->whereKey($user->id))
+                        ->orWhereHas('assignedProjects', fn ($query) => $query->where('owner_id', $user->id));
+                });
+            })
             ->when($validated['search'] ?? null, function ($query, string $search): void {
                 $normalizedSearch = '%'.strtolower($search).'%';
 
@@ -69,15 +79,23 @@ class TeamController extends Controller
 
     public function store(StoreTeamRequest $request): JsonResponse
     {
-        $team = Team::query()->create($request->validated());
+        Gate::authorize('create', Team::class);
 
-        return (new TeamResource($team))
+        $team = Team::query()->create($request->validated());
+        $team->members()->attach($request->user()->id, [
+            'role' => 'owner',
+            'joined_at' => now(),
+        ]);
+
+        return (new TeamResource($team->load('members')))
             ->response()
             ->setStatusCode(Response::HTTP_CREATED);
     }
 
     public function show(Team $team): TeamResource
     {
+        Gate::authorize('view', $team);
+
         return new TeamResource(
             $team->load(['members', 'assignedProjects'])
         );
@@ -85,6 +103,8 @@ class TeamController extends Controller
 
     public function members(Team $team): AnonymousResourceCollection
     {
+        Gate::authorize('view', $team);
+
         $members = $team->members()
             ->orderByPivotDesc('joined_at')
             ->get();
@@ -94,6 +114,8 @@ class TeamController extends Controller
 
     public function addMember(AddTeamMemberRequest $request, Team $team): JsonResponse
     {
+        Gate::authorize('update', $team);
+
         $validated = $request->validated();
 
         $user = User::query()->findOrFail((int) $validated['user_id']);
@@ -116,6 +138,8 @@ class TeamController extends Controller
 
     public function removeMember(Team $team, User $user): Response
     {
+        Gate::authorize('update', $team);
+
         if (! $team->members()->whereKey($user->id)->exists()) {
             abort(Response::HTTP_NOT_FOUND, 'User is not a member of this team.');
         }
@@ -127,6 +151,8 @@ class TeamController extends Controller
 
     public function update(UpdateTeamRequest $request, Team $team): TeamResource
     {
+        Gate::authorize('update', $team);
+
         $team->update($request->validated());
 
         return new TeamResource($team);
@@ -134,6 +160,10 @@ class TeamController extends Controller
 
     public function destroy(Team $team): Response
     {
+        Gate::authorize('delete', $team);
+
+        $team->members()->detach();
+        $team->assignedProjects()->detach();
         $team->delete();
 
         return response()->noContent();

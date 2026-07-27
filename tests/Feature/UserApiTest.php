@@ -85,7 +85,7 @@ test('user avatar uploads are stored on the configured avatar disk', function ()
     config(['filesystems.avatar_disk' => 'r2']);
 
     $user = User::factory()->create();
-    $token = domainApiAccessToken();
+    $token = domainApiAccessToken($user);
     $avatar = UploadedFile::fake()->image('avatar.jpg');
     $expectedPath = 'avatars/'.$avatar->hashName();
 
