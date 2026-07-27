@@ -143,17 +143,20 @@ class TaskController extends Controller
 
     public function reorder(ReorderTasksRequest $request): JsonResponse
     {
+        /** @var array<int, array{id: int, position: int}> $taskOrders */
+        $taskOrders = $request->validated('tasks');
+
         $tasks = Task::query()
-            ->whereKey(collect($request->validated('tasks'))->pluck('id'))
+            ->whereKey(collect($taskOrders)->pluck('id'))
             ->get()
             ->keyBy('id');
 
-        foreach ($request->validated('tasks') as $taskOrder) {
+        foreach ($taskOrders as $taskOrder) {
             Gate::authorize('update', $tasks->get($taskOrder['id']));
         }
 
-        DB::transaction(function () use ($request): void {
-            foreach ($request->validated('tasks') as $taskOrder) {
+        DB::transaction(function () use ($taskOrders): void {
+            foreach ($taskOrders as $taskOrder) {
                 Task::query()
                     ->whereKey($taskOrder['id'])
                     ->update(['position' => $taskOrder['position']]);
