@@ -39,7 +39,7 @@ test('projects can be listed with pagination filters search and sorting', functi
         ->assertJsonPath('pagination.totalItems', 2)
         ->assertJsonPath('pagination.totalPages', 2);
 
-    withToken($token);
+    withToken(domainApiAccessToken($otherOwner));
 
     getJson('/api/v1/projects?hasDescription=false')
         ->assertOk()

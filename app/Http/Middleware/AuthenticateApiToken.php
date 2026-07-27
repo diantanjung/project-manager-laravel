@@ -6,6 +6,7 @@ use App\Enums\AuthTokenType;
 use App\Services\Auth\AuthTokenService;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
 final class AuthenticateApiToken
@@ -33,6 +34,7 @@ final class AuthenticateApiToken
         }
 
         $token->markUsed();
+        Auth::setUser($token->user);
         $request->setUserResolver(fn () => $token->user);
         $request->attributes->set('authToken', $token);
 

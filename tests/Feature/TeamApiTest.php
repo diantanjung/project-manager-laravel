@@ -42,7 +42,8 @@ test('teams can be managed through the api', function () {
 });
 
 test('teams can be listed with pagination filters search and sorting', function () {
-    $token = domainApiAccessToken();
+    $admin = User::factory()->admin()->create();
+    $token = domainApiAccessToken($admin);
 
     Team::query()->create([
         'name' => 'Alpha Engineering',
@@ -91,10 +92,15 @@ test('teams list query parameters are validated', function () {
 });
 
 test('members can be added to teams through the api', function () {
-    $token = domainApiAccessToken();
+    $owner = User::factory()->create();
+    $token = domainApiAccessToken($owner);
     $team = Team::query()->create([
         'name' => 'Engineering',
         'description' => 'Product engineering',
+    ]);
+    $team->members()->attach($owner, [
+        'role' => 'admin',
+        'joined_at' => now(),
     ]);
     $member = User::factory()->create();
 
@@ -105,7 +111,9 @@ test('members can be added to teams through the api', function () {
         ])
         ->assertCreated()
         ->assertJsonPath('data.id', $team->id)
-        ->assertJsonPath('data.members.0.id', $member->id);
+        ->assertJsonFragment([
+            'email' => $member->email,
+        ]);
 
     $teamMember = $team->members()->whereKey($member->id)->firstOrFail();
 
@@ -114,7 +122,8 @@ test('members can be added to teams through the api', function () {
 });
 
 test('team members can be listed through the api', function () {
-    $token = domainApiAccessToken();
+    $owner = User::factory()->create();
+    $token = domainApiAccessToken($owner);
     $team = Team::query()->create([
         'name' => 'Engineering',
         'description' => 'Product engineering',
@@ -122,6 +131,10 @@ test('team members can be listed through the api', function () {
     $admin = User::factory()->create();
     $member = User::factory()->create();
 
+    $team->members()->attach($owner, [
+        'role' => 'owner',
+        'joined_at' => now()->subDays(2),
+    ]);
     $team->members()->attach($admin, [
         'role' => 'admin',
         'joined_at' => now()->subDay(),
@@ -135,7 +148,7 @@ test('team members can be listed through the api', function () {
 
     getJson("/api/v1/teams/{$team->id}/members")
         ->assertOk()
-        ->assertJsonCount(2, 'data')
+        ->assertJsonCount(3, 'data')
         ->assertJsonPath('data.0.id', $member->id)
         ->assertJsonPath('data.0.membership.role', 'member')
         ->assertJsonPath('data.1.id', $admin->id)
@@ -143,13 +156,18 @@ test('team members can be listed through the api', function () {
 });
 
 test('duplicate team membership returns a conflict', function () {
-    $token = domainApiAccessToken();
+    $owner = User::factory()->create();
+    $token = domainApiAccessToken($owner);
     $team = Team::query()->create([
         'name' => 'Engineering',
         'description' => 'Product engineering',
     ]);
     $member = User::factory()->create();
 
+    $team->members()->attach($owner, [
+        'role' => 'admin',
+        'joined_at' => now(),
+    ]);
     $team->members()->attach($member, [
         'role' => 'member',
         'joined_at' => now(),
@@ -164,10 +182,15 @@ test('duplicate team membership returns a conflict', function () {
 });
 
 test('team member payload is validated', function () {
-    $token = domainApiAccessToken();
+    $owner = User::factory()->create();
+    $token = domainApiAccessToken($owner);
     $team = Team::query()->create([
         'name' => 'Engineering',
         'description' => 'Product engineering',
+    ]);
+    $team->members()->attach($owner, [
+        'role' => 'admin',
+        'joined_at' => now(),
     ]);
 
     withToken($token)
@@ -180,13 +203,18 @@ test('team member payload is validated', function () {
 });
 
 test('members can be removed from teams through the api', function () {
-    $token = domainApiAccessToken();
+    $owner = User::factory()->create();
+    $token = domainApiAccessToken($owner);
     $team = Team::query()->create([
         'name' => 'Engineering',
         'description' => 'Product engineering',
     ]);
     $member = User::factory()->create();
 
+    $team->members()->attach($owner, [
+        'role' => 'admin',
+        'joined_at' => now(),
+    ]);
     $team->members()->attach($member, [
         'role' => 'member',
         'joined_at' => now(),

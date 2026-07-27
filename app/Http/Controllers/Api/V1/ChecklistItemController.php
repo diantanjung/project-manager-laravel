@@ -10,11 +10,14 @@ use App\Models\ChecklistItem;
 use App\Models\Task;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Gate;
 
 class ChecklistItemController extends Controller
 {
     public function store(StoreChecklistItemRequest $request, Task $task): JsonResponse
     {
+        Gate::authorize('create', [ChecklistItem::class, $task]);
+
         $item = ChecklistItem::query()->create($request->validated());
 
         return (new ChecklistItemResource($item))
@@ -24,6 +27,8 @@ class ChecklistItemController extends Controller
 
     public function update(UpdateChecklistItemRequest $request, ChecklistItem $item): ChecklistItemResource
     {
+        Gate::authorize('update', $item);
+
         $item->update($request->validated());
 
         return new ChecklistItemResource($item);
@@ -31,6 +36,8 @@ class ChecklistItemController extends Controller
 
     public function destroy(ChecklistItem $item): Response
     {
+        Gate::authorize('delete', $item);
+
         $item->delete();
 
         return response()->noContent();

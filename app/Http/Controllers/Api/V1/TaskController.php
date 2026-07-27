@@ -15,6 +15,7 @@ use App\Http\Resources\Api\V1\CommentResource;
 use App\Http\Resources\Api\V1\TaskResource;
 use App\Http\Resources\Api\V1\UserResource;
 use App\Models\ActivityLog;
+use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -22,12 +23,16 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 
 class TaskController extends Controller
 {
     public function index(IndexTaskRequest $request): AnonymousResourceCollection
     {
+        Gate::authorize('viewAny', Task::class);
+
         $validated = $request->validated();
+        $user = $request->user();
         $limit = (int) ($validated['limit'] ?? 15);
         $page = (int) ($validated['page'] ?? 1);
         $sortBy = $validated['sortBy'] ?? 'created_at';
@@ -36,6 +41,17 @@ class TaskController extends Controller
         /** @var LengthAwarePaginator<int, Task> $tasks */
         $tasks = Task::query()
             ->with(['project.owner', 'creator', 'assignee'])
+            ->when(! $user->isAdmin(), function ($query) use ($user): void {
+                $query->where(function ($query) use ($user): void {
+                    $query->where('creator_id', $user->id)
+                        ->orWhere('assignee_id', $user->id)
+                        ->orWhereHas('assignedUsers', fn ($query) => $query->whereKey($user->id))
+                        ->orWhereHas('project', function ($query) use ($user): void {
+                            $query->where('owner_id', $user->id)
+                                ->orWhereHas('assignedTeams.members', fn ($query) => $query->whereKey($user->id));
+                        });
+                });
+            })
             ->when($validated['search'] ?? null, function ($query, string $search): void {
                 $normalizedSearch = '%'.strtolower($search).'%';
 
@@ -91,7 +107,16 @@ class TaskController extends Controller
 
     public function store(StoreTaskRequest $request): JsonResponse
     {
-        $task = Task::query()->create($request->validated());
+        $validated = $request->validated();
+        $project = Project::query()->findOrFail((int) $validated['project_id']);
+
+        Gate::authorize('create', [Task::class, $project]);
+
+        if (! $request->user()->isAdmin()) {
+            $validated['creator_id'] = $request->user()->id;
+        }
+
+        $task = Task::query()->create($validated);
 
         return (new TaskResource($task->load(['project', 'creator', 'assignee'])))
             ->response()
@@ -100,6 +125,8 @@ class TaskController extends Controller
 
     public function show(Task $task): TaskResource
     {
+        Gate::authorize('view', $task);
+
         return new TaskResource(
             $task->load(['project', 'creator', 'assignee', 'comments.author', 'attachments.uploader', 'assignedUsers'])
         );
@@ -107,6 +134,8 @@ class TaskController extends Controller
 
     public function status(UpdateTaskStatusRequest $request, Task $task): TaskResource
     {
+        Gate::authorize('update', $task);
+
         $task->update($request->validated());
 
         return new TaskResource($task->load(['project', 'creator', 'assignee']));
@@ -114,6 +143,15 @@ class TaskController extends Controller
 
     public function reorder(ReorderTasksRequest $request): JsonResponse
     {
+        $tasks = Task::query()
+            ->whereKey(collect($request->validated('tasks'))->pluck('id'))
+            ->get()
+            ->keyBy('id');
+
+        foreach ($request->validated('tasks') as $taskOrder) {
+            Gate::authorize('update', $tasks->get($taskOrder['id']));
+        }
+
         DB::transaction(function () use ($request): void {
             foreach ($request->validated('tasks') as $taskOrder) {
                 Task::query()
@@ -129,6 +167,8 @@ class TaskController extends Controller
 
     public function comments(Task $task): AnonymousResourceCollection
     {
+        Gate::authorize('view', $task);
+
         return CommentResource::collection(
             $task->comments()
                 ->with('author')
@@ -139,6 +179,8 @@ class TaskController extends Controller
 
     public function attachments(Task $task): AnonymousResourceCollection
     {
+        Gate::authorize('view', $task);
+
         return AttachmentResource::collection(
             $task->attachments()
                 ->with('uploader')
@@ -149,6 +191,8 @@ class TaskController extends Controller
 
     public function activity(Task $task): AnonymousResourceCollection
     {
+        Gate::authorize('view', $task);
+
         return ActivityLogResource::collection(
             ActivityLog::query()
                 ->with('actor')
@@ -161,6 +205,8 @@ class TaskController extends Controller
 
     public function assignUser(StoreTaskAssignmentRequest $request, Task $task): JsonResponse
     {
+        Gate::authorize('update', $task);
+
         $validated = $request->validated();
         $user = User::query()->findOrFail((int) $validated['user_id']);
 
@@ -183,6 +229,8 @@ class TaskController extends Controller
 
     public function removeUserAssignment(Task $task, User $user): Response
     {
+        Gate::authorize('update', $task);
+
         if (! $task->assignedUsers()->whereKey($user->id)->exists()) {
             abort(Response::HTTP_NOT_FOUND, 'User is not assigned to this task.');
         }
@@ -194,6 +242,8 @@ class TaskController extends Controller
 
     public function update(UpdateTaskRequest $request, Task $task): TaskResource
     {
+        Gate::authorize('update', $task);
+
         $task->update($request->validated());
 
         return new TaskResource($task->load(['project', 'creator', 'assignee']));
@@ -201,6 +251,8 @@ class TaskController extends Controller
 
     public function destroy(Task $task): Response
     {
+        Gate::authorize('delete', $task);
+
         $task->delete();
 
         return response()->noContent();

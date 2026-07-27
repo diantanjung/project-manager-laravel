@@ -39,6 +39,10 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
         });
     });
 
+    Route::get('attachments/{attachment}/download', [AttachmentController::class, 'download'])
+        ->middleware('signed')
+        ->name('attachments.download');
+
     Route::middleware('api.auth')->group(function (): void {
         Route::get('notifications', [NotificationController::class, 'index'])
             ->name('notifications.index');
@@ -94,9 +98,6 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
             ->name('checklist-items.update');
         Route::delete('checklist-items/{item}', [ChecklistItemController::class, 'destroy'])
             ->name('checklist-items.destroy');
-
-        Route::get('attachments/{attachment}/download', [AttachmentController::class, 'download'])
-            ->name('attachments.download');
 
         Route::get('dashboard', DashboardController::class)
             ->name('dashboard');

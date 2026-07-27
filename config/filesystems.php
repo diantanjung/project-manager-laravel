@@ -17,6 +17,12 @@ return [
 
     'avatar_disk' => env('AVATAR_FILESYSTEM_DISK', 'r2'),
 
+    'attachment_disk' => env('ATTACHMENT_FILESYSTEM_DISK', 'r2'),
+
+    'attachment_max_kilobytes' => env('ATTACHMENT_MAX_KILOBYTES', 10240),
+
+    'attachment_download_url_lifetime_minutes' => env('ATTACHMENT_DOWNLOAD_URL_LIFETIME_MINUTES', 10),
+
     /*
     |--------------------------------------------------------------------------
     | Filesystem Disks

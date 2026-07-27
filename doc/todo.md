@@ -24,12 +24,12 @@ Terakhir dicek: 25 Juli 2026. Test suite: `php artisan test --compact` lulus den
 
 - [x] Implement domain inti: team, member, project, project-team assignment, task, dan task assignment.
 - [x] Implement CRUD dan list endpoint untuk team, project, dan task.
-- [ ] Implement search, filter, sort, pagination, dan eager loading untuk query utama.
+- [x] Implement search, filter, sort, pagination, dan eager loading untuk query utama.
 - [ ] Implement policies agar akses resource sesuai role dan scope project/team.
 
 ## Phase 4 - Collaboration
 
-- [ ] Implement comment, mention, notification, attachment, dan activity log.
+- [ ] Implement comment, notification, attachment, dan activity log.
 - [ ] Konfigurasi Cloudflare R2 untuk storage attachment/avatar/export.
 - [ ] Pastikan file access private, tervalidasi, dan tidak membocorkan credential.
 - [ ] Catat aktivitas penting untuk audit trail.
@@ -37,7 +37,6 @@ Terakhir dicek: 25 Juli 2026. Test suite: `php artisan test --compact` lulus den
 ## Phase 5 - Portfolio Enhancements
 
 - [x] Implement Kanban reorder yang atomik.
-- [ ] Implement checklist/subtask dan task dependency/blocker.
 - [x] Implement dashboard summary dan reporting dasar.
 - [ ] Implement export CSV, saved filters, public share link, atau admin audit dashboard sesuai prioritas P1.
 
