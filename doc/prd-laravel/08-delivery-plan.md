@@ -26,7 +26,7 @@
 - Notification mark read.
 - Activity log generated for important changes.
 - Webhook delivery queued and signed.
-- Dashboard summary returns expected counts.
+- Dashboard summary returns expected counts, progress, deadline lists, high-priority tasks, and latest updates.
 
 ### Deployment/Smoke Tests
 

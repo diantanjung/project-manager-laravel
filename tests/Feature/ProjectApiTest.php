@@ -82,3 +82,32 @@ test('teams can be assigned to projects through the api', function () {
 
     expect($project->assignedTeams()->whereKey($team->id)->exists())->toBeFalse();
 });
+
+test('project sidebar lists visible projects without task counts', function () {
+    $owner = User::factory()->create();
+    $otherUser = User::factory()->create();
+    $token = domainApiAccessToken($owner);
+
+    $alphaProject = domainApiProject($owner);
+    $alphaProject->update(['name' => 'Alpha']);
+
+    $betaProject = domainApiProject($owner);
+    $betaProject->update(['name' => 'Beta']);
+
+    $hiddenProject = domainApiProject($otherUser);
+    $hiddenProject->update(['name' => 'Hidden']);
+
+    domainApiTask($alphaProject, $owner, $owner);
+
+    withToken($token);
+
+    getJson('/api/v1/projects/sidebar')
+        ->assertOk()
+        ->assertJsonCount(2, 'data')
+        ->assertJsonPath('data.0.id', $alphaProject->id)
+        ->assertJsonPath('data.0.name', 'Alpha')
+        ->assertJsonMissingPath('data.0.openTaskCount')
+        ->assertJsonPath('data.1.id', $betaProject->id)
+        ->assertJsonPath('data.1.name', 'Beta')
+        ->assertJsonMissingPath('data.1.openTaskCount');
+});

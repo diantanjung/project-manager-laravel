@@ -42,6 +42,7 @@ Requirements:
 - Project memiliki primary team dan owner.
 - Project dapat memiliki additional teams.
 - Project list mendukung search, filter status/team/owner, sort, dan pagination.
+- Project sidebar API menyediakan list project ringan sesuai scope user untuk navigasi.
 - Project detail menampilkan summary task count per status.
 - User di luar scope project tidak dapat membaca detail project.
 
@@ -101,9 +102,16 @@ Requirements:
 - Dashboard API menyediakan:
   - total project active;
   - task count per status;
+  - active progress sebagai `doing / (todo + doing)`;
+  - in-review task count;
+  - due-soon task count untuk task belum done yang jatuh tempo dari hari ini sampai 7 hari ke depan;
   - overdue task count;
   - workload per member;
-  - recently updated tasks.
+  - recently updated tasks;
+  - recent tasks berdasarkan waktu dibuat;
+  - upcoming deadlines;
+  - high-priority tasks;
+  - latest updates dari activity log.
 - Export CSV untuk project report dan task list.
 - Export dijalankan via job jika data besar.
 
