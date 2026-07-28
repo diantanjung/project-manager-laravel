@@ -111,8 +111,8 @@ class DashboardController extends Controller
                 $taskCounts[$status->value] = (int) ($rawTaskCounts[$status->value] ?? 0);
             }
 
-            $todoTaskCount = $taskCounts[TaskStatus::Todo->value] ?? 0;
-            $doingTaskCount = $taskCounts[TaskStatus::InProgress->value] ?? 0;
+            $todoTaskCount = $taskCounts[TaskStatus::Todo->value];
+            $doingTaskCount = $taskCounts[TaskStatus::InProgress->value];
             $activeTaskCount = $todoTaskCount + $doingTaskCount;
             $today = today();
             $dueSoonUntil = Carbon::today()->addDays(7);
@@ -134,7 +134,7 @@ class DashboardController extends Controller
                     'ratio' => $activeTaskCount > 0 ? round($doingTaskCount / $activeTaskCount, 4) : 0.0,
                     'percentage' => $activeTaskCount > 0 ? round(($doingTaskCount / $activeTaskCount) * 100, 2) : 0.0,
                 ],
-                'inReview' => $taskCounts[TaskStatus::Review->value] ?? 0,
+                'inReview' => $taskCounts[TaskStatus::Review->value],
                 'dueSoon' => Task::query()
                     ->tap($applyTaskScope)
                     ->whereBetween('due_date', [$today, $dueSoonUntil], 'and', false)
