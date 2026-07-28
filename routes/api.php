@@ -62,6 +62,8 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
         Route::delete('teams/{team}/members/{user}', [TeamController::class, 'removeMember'])
             ->name('teams.members.destroy');
 
+        Route::get('projects/sidebar', [ProjectController::class, 'sidebar'])
+            ->name('projects.sidebar');
         Route::get('projects/{project}/tasks', [ProjectController::class, 'tasks'])
             ->name('projects.tasks');
         Route::get('projects/{project}/activity', [ProjectController::class, 'activity'])

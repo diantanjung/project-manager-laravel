@@ -116,6 +116,32 @@ Task::query()
     ->count('*');
 ```
 
+## Laravel Query Builder: `whereBetween()`
+
+Intelephense juga bisa salah membaca optional argument di `whereBetween()`, terutama saat nilai batas berupa `Carbon` instance.
+
+Kode ini valid di Laravel:
+
+```php
+Task::query()
+    ->whereBetween('due_date', [$today, $dueSoonUntil])
+    ->count();
+```
+
+Signature Laravel mendukung default argument:
+
+```php
+whereBetween($column, iterable $values, $boolean = 'and', $not = false)
+```
+
+Jika Intelephense menandai `Not enough arguments`, eksplisitkan default argument tanpa mengubah behavior:
+
+```php
+Task::query()
+    ->whereBetween('due_date', [$today, $dueSoonUntil], 'and', false)
+    ->count('*');
+```
+
 ## Eloquent Model Methods: `delete()`
 
 Intelephense kadang menandai method seperti:

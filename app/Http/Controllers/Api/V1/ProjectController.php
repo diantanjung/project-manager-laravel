@@ -24,6 +24,37 @@ use Illuminate\Support\Facades\Gate;
 
 class ProjectController extends Controller
 {
+    public function sidebar(): JsonResponse
+    {
+        Gate::authorize('viewAny', Project::class);
+
+        $user = request()->user();
+
+        $projects = Project::query()
+            ->select(['id', 'name'])
+            ->when(! $user->isAdmin(), function ($query) use ($user): void {
+                $query->where(function ($query) use ($user): void {
+                    $query->where('owner_id', $user->id)
+                        ->orWhereHas('assignedTeams.members', fn ($query) => $query->whereKey($user->id))
+                        ->orWhereHas('tasks', function ($query) use ($user): void {
+                            $query->where('creator_id', $user->id)
+                                ->orWhere('assignee_id', $user->id)
+                                ->orWhereHas('assignedUsers', fn ($query) => $query->whereKey($user->id));
+                        });
+                });
+            })
+            ->orderBy('name')
+            ->get()
+            ->map(fn (Project $project): array => [
+                'id' => $project->id,
+                'name' => $project->name,
+            ]);
+
+        return response()->json([
+            'data' => $projects,
+        ]);
+    }
+
     public function index(IndexProjectRequest $request): AnonymousResourceCollection
     {
         Gate::authorize('viewAny', Project::class);
