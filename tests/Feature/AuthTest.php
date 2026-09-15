@@ -2,6 +2,7 @@
 
 use App\Models\AuthToken;
 use App\Models\User;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 function expectSafeUserResponse(array $user): void
@@ -63,6 +64,52 @@ test('a user can login and fetch their profile with an access token', function (
         ->assertJsonPath('data.user.email', 'dian@example.com');
 
     expectSafeUserResponse($profileResponse->json('data.user'));
+});
+
+test('access token last used timestamp is only refreshed when stale', function () {
+    Carbon::setTestNow('2026-09-08 10:00:00');
+
+    try {
+        User::factory()->create([
+            'email' => 'dian@example.com',
+            'password' => 'password',
+        ]);
+
+        $accessToken = $this->postJson('/api/v1/auth/login', [
+            'email' => 'dian@example.com',
+            'password' => 'password',
+        ])->json('data.accessToken');
+
+        $token = AuthToken::query()
+            ->where('token_hash', hash('sha256', $accessToken))
+            ->firstOrFail();
+
+        expect($token->last_used_at)->toBeNull();
+
+        $this->withToken($accessToken)
+            ->getJson('/api/v1/auth/me')
+            ->assertOk();
+
+        $firstUsedAt = $token->fresh()->last_used_at;
+
+        Carbon::setTestNow('2026-09-08 10:04:00');
+
+        $this->withToken($accessToken)
+            ->getJson('/api/v1/auth/me')
+            ->assertOk();
+
+        expect($token->fresh()->last_used_at?->equalTo($firstUsedAt))->toBeTrue();
+
+        Carbon::setTestNow('2026-09-08 10:06:00');
+
+        $this->withToken($accessToken)
+            ->getJson('/api/v1/auth/me')
+            ->assertOk();
+
+        expect($token->fresh()->last_used_at?->equalTo(Carbon::parse('2026-09-08 10:06:00')))->toBeTrue();
+    } finally {
+        Carbon::setTestNow();
+    }
 });
 
 test('seeded demo users can login with the demo password', function () {

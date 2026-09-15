@@ -33,7 +33,7 @@ final class AuthenticateApiToken
             abort(403, 'This account is inactive.');
         }
 
-        $token->markUsed();
+        $token->markUsedIfStale();
         Auth::setUser($token->user);
         $request->setUserResolver(fn () => $token->user);
         $request->attributes->set('authToken', $token);
