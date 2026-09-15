@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Enums\TaskStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\Projects\AssignProjectTeamRequest;
 use App\Http\Requests\Api\V1\Projects\IndexProjectRequest;
@@ -43,12 +44,21 @@ class ProjectController extends Controller
                         });
                 });
             })
+            ->withCount([
+                'tasks as open_task_count' => fn ($query) => $query->where('status', '!=', TaskStatus::Done->value),
+            ])
             ->orderBy('name')
             ->get()
-            ->map(fn (Project $project): array => [
-                'id' => $project->id,
-                'name' => $project->name,
-            ]);
+            ->map(
+                /**
+                 * @return array{id: int, name: string, openTaskCount: int}
+                 */
+                fn (Project $project): array => [
+                    'id' => $project->id,
+                    'name' => $project->name,
+                    'openTaskCount' => (int) $project->getAttribute('open_task_count'),
+                ],
+            );
 
         return response()->json([
             'data' => $projects,

@@ -62,6 +62,15 @@ class AuthToken extends Model
         $this->forceFill(['last_used_at' => now()])->save();
     }
 
+    public function markUsedIfStale(int $minutes = 5): void
+    {
+        if ($this->last_used_at !== null && $this->last_used_at->gt(now()->subMinutes($minutes))) {
+            return;
+        }
+
+        $this->markUsed();
+    }
+
     public function markRevoked(): void
     {
         if ($this->revoked_at !== null) {

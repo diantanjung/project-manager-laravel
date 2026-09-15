@@ -70,118 +70,120 @@ class DashboardController extends Controller
             ->with('project:id,name')
             ->tap($applyTaskScope);
 
+        $visibleProjectIdsQuery = fn () => Project::query()
+            ->select('id')
+            ->tap($applyProjectScope);
+
+        $visibleTaskIdsQuery = fn () => Task::query()
+            ->select('id')
+            ->tap($applyTaskScope);
+
         $latestUpdatesQuery = ActivityLog::query()
             ->with('actor')
-            ->when(! $user->isAdmin(), function ($query) use ($user): void {
-                $query->where(function ($query) use ($user): void {
-                    $query->where(function ($query) use ($user): void {
+            ->when(! $user->isAdmin(), function ($query) use ($visibleProjectIdsQuery, $visibleTaskIdsQuery): void {
+                $query->where(function ($query) use ($visibleProjectIdsQuery, $visibleTaskIdsQuery): void {
+                    $query->where(function ($query) use ($visibleProjectIdsQuery): void {
                         $query->where('entity_type', Project::class)
-                            ->whereIn('entity_id', Project::query()
-                                ->select('id')
-                                ->where('owner_id', $user->id)
-                                ->orWhereHas('assignedTeams.members', fn ($query) => $query->whereKey($user->id)));
-                    })->orWhere(function ($query) use ($user): void {
+                            ->whereIn('entity_id', $visibleProjectIdsQuery());
+                    })->orWhere(function ($query) use ($visibleTaskIdsQuery): void {
                         $query->where('entity_type', Task::class)
-                            ->whereIn('entity_id', Task::query()
-                                ->select('id')
-                                ->where('creator_id', $user->id)
-                                ->orWhere('assignee_id', $user->id)
-                                ->orWhereHas('assignedUsers', fn ($query) => $query->whereKey($user->id))
-                                ->orWhereHas('project', function ($query) use ($user): void {
-                                    $query->where('owner_id', $user->id)
-                                        ->orWhereHas('assignedTeams.members', fn ($query) => $query->whereKey($user->id));
-                                }));
+                            ->whereIn('entity_id', $visibleTaskIdsQuery());
                     });
                 });
             })
             ->latest('created_at')
             ->limit(5);
 
-        $payload = Cache::remember("dashboard:user:{$user->id}", 15, function () use ($applyProjectScope, $applyTaskScope, $baseTaskListQuery, $latestUpdatesQuery): array {
-            $rawTaskCounts = Task::query()
-                ->tap($applyTaskScope)
-                ->selectRaw('status, count(*) as task_count')
-                ->groupBy('status')
-                ->pluck('task_count', 'status')
-                ->all();
-
-            $taskCounts = [];
-
-            foreach (TaskStatus::cases() as $status) {
-                $taskCounts[$status->value] = (int) ($rawTaskCounts[$status->value] ?? 0);
-            }
-
-            $todoTaskCount = $taskCounts[TaskStatus::Todo->value];
-            $doingTaskCount = $taskCounts[TaskStatus::InProgress->value];
-            $activeTaskCount = $todoTaskCount + $doingTaskCount;
-            $today = today();
-            $dueSoonUntil = Carbon::today()->addDays(7);
-            $overdueTaskCount = Task::query()
-                ->tap($applyTaskScope)
-                ->whereDate('due_date', '<', $today, 'and')
-                ->where('status', '!=', TaskStatus::Done->value)
-                ->count('*');
-
-            return [
-                'totalActiveProjects' => Project::query()
-                    ->tap($applyProjectScope)
-                    ->count('*'),
-                'taskCountPerStatus' => $taskCounts,
-                'activeProgress' => [
-                    'doing' => $doingTaskCount,
-                    'todo' => $todoTaskCount,
-                    'total' => $activeTaskCount,
-                    'ratio' => $activeTaskCount > 0 ? round($doingTaskCount / $activeTaskCount, 4) : 0.0,
-                    'percentage' => $activeTaskCount > 0 ? round(($doingTaskCount / $activeTaskCount) * 100, 2) : 0.0,
-                ],
-                'inReview' => $taskCounts[TaskStatus::Review->value],
-                'dueSoon' => Task::query()
+        $payload = Cache::store((string) config('cache.dashboard_store'))
+            ->remember("dashboard:user:{$user->id}", 15, function () use ($applyProjectScope, $applyTaskScope, $baseTaskListQuery, $latestUpdatesQuery): array {
+                $rawTaskCounts = Task::query()
                     ->tap($applyTaskScope)
-                    ->whereBetween('due_date', [$today, $dueSoonUntil], 'and', false)
+                    ->selectRaw('status, count(*) as task_count')
+                    ->groupBy('status')
+                    ->pluck('task_count', 'status')
+                    ->all();
+
+                $taskCounts = [];
+
+                foreach (TaskStatus::cases() as $status) {
+                    $taskCounts[$status->value] = (int) ($rawTaskCounts[$status->value] ?? 0);
+                }
+
+                $todoTaskCount = $taskCounts[TaskStatus::Todo->value];
+                $doingTaskCount = $taskCounts[TaskStatus::InProgress->value];
+                $activeTaskCount = $todoTaskCount + $doingTaskCount;
+                $today = today();
+                $dueSoonUntil = Carbon::today()->addDays(7);
+                $deadlineCounts = Task::query()
+                    ->tap($applyTaskScope)
                     ->where('status', '!=', TaskStatus::Done->value)
-                    ->count('*'),
-                'overdue' => $overdueTaskCount,
-                'overdueTaskCount' => $overdueTaskCount,
-                'workloadPerMember' => Task::query()
-                    ->tap($applyTaskScope)
-                    ->selectRaw('assignee_id, count(*) as task_count')
-                    ->groupBy('assignee_id')
-                    ->pluck('task_count', 'assignee_id')
-                    ->map(fn (int $taskCount): int => $taskCount)
-                    ->all(),
-                'recentlyUpdatedTasks' => DashboardTaskResource::collection(
-                    $baseTaskListQuery()
-                        ->latest('updated_at')
-                        ->limit(5)
-                        ->get()
-                )->resolve(),
-                'recentTasks' => DashboardTaskResource::collection(
-                    $baseTaskListQuery()
-                        ->latest('created_at')
-                        ->limit(5)
-                        ->get()
-                )->resolve(),
-                'upcomingDeadlines' => DashboardTaskResource::collection(
-                    $baseTaskListQuery()
-                        ->whereDate('due_date', '>=', $today)
-                        ->where('status', '!=', TaskStatus::Done->value)
-                        ->orderBy('due_date')
-                        ->orderBy('id')
-                        ->limit(5)
-                        ->get()
-                )->resolve(),
-                'highPriorityTasks' => DashboardTaskResource::collection(
-                    $baseTaskListQuery()
-                        ->whereIn('priority', [TaskPriority::High->value, TaskPriority::Urgent->value])
-                        ->where('status', '!=', TaskStatus::Done->value)
-                        ->orderByRaw("case priority when 'urgent' then 0 when 'high' then 1 else 2 end")
-                        ->orderBy('due_date')
-                        ->limit(5)
-                        ->get()
-                )->resolve(),
-                'latestUpdates' => ActivityLogResource::collection($latestUpdatesQuery->get())->resolve(),
-            ];
-        });
+                    ->toBase()
+                    ->selectRaw(
+                        'count(*) filter (where due_date between ? and ?) as due_soon_task_count, count(*) filter (where due_date < ?) as overdue_task_count',
+                        [$today->toDateString(), $dueSoonUntil->toDateString(), $today->toDateString()],
+                    )
+                    ->first();
+
+                $deadlineCounts = (array) $deadlineCounts;
+                $dueSoonTaskCount = (int) ($deadlineCounts['due_soon_task_count'] ?? 0);
+                $overdueTaskCount = (int) ($deadlineCounts['overdue_task_count'] ?? 0);
+
+                return [
+                    'totalActiveProjects' => Project::query()
+                        ->tap($applyProjectScope)
+                        ->count('*'),
+                    'taskCountPerStatus' => $taskCounts,
+                    'activeProgress' => [
+                        'doing' => $doingTaskCount,
+                        'todo' => $todoTaskCount,
+                        'total' => $activeTaskCount,
+                        'ratio' => $activeTaskCount > 0 ? round($doingTaskCount / $activeTaskCount, 4) : 0.0,
+                        'percentage' => $activeTaskCount > 0 ? round(($doingTaskCount / $activeTaskCount) * 100, 2) : 0.0,
+                    ],
+                    'inReview' => $taskCounts[TaskStatus::Review->value],
+                    'dueSoon' => $dueSoonTaskCount,
+                    'overdue' => $overdueTaskCount,
+                    'overdueTaskCount' => $overdueTaskCount,
+                    'workloadPerMember' => Task::query()
+                        ->tap($applyTaskScope)
+                        ->selectRaw('assignee_id, count(*) as task_count')
+                        ->groupBy('assignee_id')
+                        ->pluck('task_count', 'assignee_id')
+                        ->map(fn (int $taskCount): int => $taskCount)
+                        ->all(),
+                    'recentlyUpdatedTasks' => DashboardTaskResource::collection(
+                        $baseTaskListQuery()
+                            ->latest('updated_at')
+                            ->limit(5)
+                            ->get()
+                    )->resolve(),
+                    'recentTasks' => DashboardTaskResource::collection(
+                        $baseTaskListQuery()
+                            ->latest('created_at')
+                            ->limit(5)
+                            ->get()
+                    )->resolve(),
+                    'upcomingDeadlines' => DashboardTaskResource::collection(
+                        $baseTaskListQuery()
+                            ->whereDate('due_date', '>=', $today)
+                            ->where('status', '!=', TaskStatus::Done->value)
+                            ->orderBy('due_date')
+                            ->orderBy('id')
+                            ->limit(5)
+                            ->get()
+                    )->resolve(),
+                    'highPriorityTasks' => DashboardTaskResource::collection(
+                        $baseTaskListQuery()
+                            ->whereIn('priority', [TaskPriority::High->value, TaskPriority::Urgent->value])
+                            ->where('status', '!=', TaskStatus::Done->value)
+                            ->orderByRaw("case priority when 'urgent' then 0 when 'high' then 1 else 2 end")
+                            ->orderBy('due_date')
+                            ->limit(5)
+                            ->get()
+                    )->resolve(),
+                    'latestUpdates' => ActivityLogResource::collection($latestUpdatesQuery->get())->resolve(),
+                ];
+            });
 
         return response()->json($payload);
     }

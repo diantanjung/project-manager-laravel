@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\TaskStatus;
 use App\Models\Project;
 use App\Models\Team;
 use App\Models\User;
@@ -83,7 +84,7 @@ test('teams can be assigned to projects through the api', function () {
     expect($project->assignedTeams()->whereKey($team->id)->exists())->toBeFalse();
 });
 
-test('project sidebar lists visible projects without task counts', function () {
+test('project sidebar lists visible projects with open task counts', function () {
     $owner = User::factory()->create();
     $otherUser = User::factory()->create();
     $token = domainApiAccessToken($owner);
@@ -98,6 +99,7 @@ test('project sidebar lists visible projects without task counts', function () {
     $hiddenProject->update(['name' => 'Hidden']);
 
     domainApiTask($alphaProject, $owner, $owner);
+    domainApiTask($alphaProject, $owner, $owner)->update(['status' => TaskStatus::Done]);
 
     withToken($token);
 
@@ -106,8 +108,8 @@ test('project sidebar lists visible projects without task counts', function () {
         ->assertJsonCount(2, 'data')
         ->assertJsonPath('data.0.id', $alphaProject->id)
         ->assertJsonPath('data.0.name', 'Alpha')
-        ->assertJsonMissingPath('data.0.openTaskCount')
+        ->assertJsonPath('data.0.openTaskCount', 1)
         ->assertJsonPath('data.1.id', $betaProject->id)
         ->assertJsonPath('data.1.name', 'Beta')
-        ->assertJsonMissingPath('data.1.openTaskCount');
+        ->assertJsonPath('data.1.openTaskCount', 0);
 });

@@ -17,6 +17,11 @@ return [
 
     'default' => env('CACHE_STORE', 'database'),
 
+    'dashboard_store' => env(
+        'DASHBOARD_CACHE_STORE',
+        env('CACHE_STORE', 'database') === 'database' ? 'file' : env('CACHE_STORE', 'file'),
+    ),
+
     /*
     |--------------------------------------------------------------------------
     | Cache Stores
