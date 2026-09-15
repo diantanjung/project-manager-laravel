@@ -1,6 +1,10 @@
 Project ini adalah rewrite backend dengan laravel.
 Source of truth untuk dokumen lintas aplikasi ada di backend:
 
+- Frontend: <https://taskflowprojectmanager.vercel.app>
+- Laravel API: <https://project-manager-laravel.onrender.com>
+- Node.js API: <https://project-manager-be-3g3k.onrender.com>
+
 - Project backend node.js : `../../project-manager-be`
 - API contract: `../../project-manager-be/doc/api_contract.md`
 - PRD: `../../project-manager-be/doc/prd.md`
