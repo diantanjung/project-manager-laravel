@@ -117,14 +117,16 @@ class DashboardController extends Controller
                 $deadlineCounts = Task::query()
                     ->tap($applyTaskScope)
                     ->where('status', '!=', TaskStatus::Done->value)
+                    ->toBase()
                     ->selectRaw(
                         'count(*) filter (where due_date between ? and ?) as due_soon_task_count, count(*) filter (where due_date < ?) as overdue_task_count',
                         [$today->toDateString(), $dueSoonUntil->toDateString(), $today->toDateString()],
                     )
                     ->first();
 
-                $dueSoonTaskCount = (int) ($deadlineCounts?->due_soon_task_count ?? 0);
-                $overdueTaskCount = (int) ($deadlineCounts?->overdue_task_count ?? 0);
+                $deadlineCounts = (array) $deadlineCounts;
+                $dueSoonTaskCount = (int) ($deadlineCounts['due_soon_task_count'] ?? 0);
+                $overdueTaskCount = (int) ($deadlineCounts['overdue_task_count'] ?? 0);
 
                 return [
                     'totalActiveProjects' => Project::query()

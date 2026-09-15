@@ -49,11 +49,16 @@ class ProjectController extends Controller
             ])
             ->orderBy('name')
             ->get()
-            ->map(fn (Project $project): array => [
-                'id' => $project->id,
-                'name' => $project->name,
-                'openTaskCount' => $project->open_task_count,
-            ]);
+            ->map(
+                /**
+                 * @return array{id: int, name: string, openTaskCount: int}
+                 */
+                fn (Project $project): array => [
+                    'id' => $project->id,
+                    'name' => $project->name,
+                    'openTaskCount' => (int) $project->getAttribute('open_task_count'),
+                ],
+            );
 
         return response()->json([
             'data' => $projects,
