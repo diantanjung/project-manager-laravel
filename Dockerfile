@@ -1,25 +1,22 @@
 # syntax=docker/dockerfile:1
 
-FROM php:8.5-cli-alpine AS php-base
+FROM php:8.5-cli-bookworm AS php-base
 
-RUN apk add --no-cache \
-        bash \
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
         ca-certificates \
-        icu-libs \
-        libpq \
-        libzip \
-    && apk add --no-cache --virtual .build-deps \
-        $PHPIZE_DEPS \
-        icu-dev \
+        libicu-dev \
+        libpq-dev \
         libzip-dev \
-        postgresql-dev \
+        unzip \
     && docker-php-ext-install \
         bcmath \
         intl \
         opcache \
         pdo_pgsql \
         zip \
-    && apk del .build-deps
+    && apt-get purge -y --auto-remove \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /var/www/html
 
