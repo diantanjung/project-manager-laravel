@@ -1,24 +1,32 @@
 # syntax=docker/dockerfile:1
 
-FROM php:8.5-cli-bookworm AS php-base
+FROM php:8.4-cli-bookworm AS php-base
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-        $PHPIZE_DEPS \
+        autoconf \
         bash \
         ca-certificates \
+        dpkg-dev \
+        file \
+        g++ \
+        gcc \
+        libc6-dev \
         libicu-dev \
         libpq-dev \
         libzip-dev \
+        make \
+        pkg-config \
+        re2c \
         unzip \
-    && docker-php-ext-install \
-        bcmath \
-        intl \
-        opcache \
-        pdo_pgsql \
-        zip \
-    && apt-get purge -y --auto-remove $PHPIZE_DEPS \
     && rm -rf /var/lib/apt/lists/*
+
+RUN docker-php-ext-install -j"$(nproc)" \
+    bcmath \
+    intl \
+    opcache \
+    pdo_pgsql \
+    zip
 
 WORKDIR /var/www/html
 
