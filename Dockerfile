@@ -4,6 +4,8 @@ FROM php:8.5-cli-bookworm AS php-base
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
+        $PHPIZE_DEPS \
+        bash \
         ca-certificates \
         libicu-dev \
         libpq-dev \
@@ -15,7 +17,7 @@ RUN apt-get update \
         opcache \
         pdo_pgsql \
         zip \
-    && apt-get purge -y --auto-remove \
+    && apt-get purge -y --auto-remove $PHPIZE_DEPS \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /var/www/html
