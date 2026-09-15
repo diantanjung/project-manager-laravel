@@ -13,8 +13,6 @@ if [ -n "${APP_URL:-}" ] && [ -z "${ASSET_URL:-}" ]; then
     export ASSET_URL="${APP_URL}"
 fi
 
-envsubst '$PORT' < /etc/nginx/templates/default.conf.template > /etc/nginx/http.d/default.conf
-
 mkdir -p \
     storage/app/public \
     storage/framework/cache/data \
@@ -34,5 +32,4 @@ fi
 php artisan optimize:clear
 php artisan optimize
 
-php-fpm -D
-nginx -g 'daemon off;'
+exec php artisan serve --host=0.0.0.0 --port="$PORT"
