@@ -4,6 +4,12 @@ Project Manager Laravel is a REST API backend for managing projects, teams, task
 
 It is built to help teams organize work in one place: who owns what, how far each task has progressed, which deadlines need attention, and which important activities happened inside a project.
 
+## Live Deployments
+
+- Frontend: [https://taskflowprojectmanager.vercel.app](https://taskflowprojectmanager.vercel.app)
+- Laravel API: [https://project-manager-laravel.onrender.com](https://project-manager-laravel.onrender.com)
+- Node.js API: [https://project-manager-be-3g3k.onrender.com](https://project-manager-be-3g3k.onrender.com)
+
 ## What Is This Project For?
 
 This project can be used as the backend for project management applications such as Kanban boards, delivery dashboards, task trackers, or internal productivity tools.
